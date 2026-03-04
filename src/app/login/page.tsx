@@ -3,46 +3,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
-
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-      return;
-    }
-
     router.push("/dashboard");
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+    <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
       <div className="w-full max-w-md">
-        <div className="bg-white border border-gray-200 rounded-lg p-8">
-          <h1 className="text-xl font-semibold text-gray-900 mb-1">
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-8">
+          <h1 className="text-xl font-semibold text-[#111827] mb-1">
             Motorsport Law AI
           </h1>
-          <p className="text-sm text-gray-500 mb-6">Sign in to your account</p>
+          <p className="text-sm text-[#6B7280] mb-6">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#111827] mb-1">
                 Email
               </label>
               <input
@@ -50,12 +35,12 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                className="w-full border border-[#E5E7EB] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#111827] mb-1">
                 Password
               </label>
               <input
@@ -63,28 +48,22 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                className="w-full border border-[#E5E7EB] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
               />
             </div>
-
-            {error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
-                {error}
-              </p>
-            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gray-900 text-white text-sm font-medium py-2 px-4 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#1E3A5F] text-white text-sm font-medium py-2.5 px-4 rounded hover:bg-[#162d4a] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
-          <p className="text-sm text-gray-500 mt-4 text-center">
+          <p className="text-sm text-[#6B7280] mt-4 text-center">
             No account?{" "}
-            <Link href="/register" className="text-gray-900 font-medium underline">
+            <Link href="/register" className="text-[#1E3A5F] font-medium underline">
               Register
             </Link>
           </p>

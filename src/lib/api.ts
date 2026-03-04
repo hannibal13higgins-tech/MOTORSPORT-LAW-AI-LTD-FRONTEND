@@ -1,20 +1,15 @@
-import { redirect } from "next/navigation";
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export async function apiFetch(
   path: string,
-  options?: RequestInit,
-  token?: string
+  options?: RequestInit
 ): Promise<unknown> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    Authorization: "Bearer dummy",
+    "x-dev-actor-id": "founder-demo",
     ...(options?.headers as Record<string, string>),
   };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
@@ -33,7 +28,10 @@ export async function apiFetch(
     const code = body?.error ?? "UNKNOWN_ERROR";
 
     if (code === "AUTH_REQUIRED") {
-      redirect("/login");
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+      return null;
     }
 
     if (code === "NOT_FOUND") {

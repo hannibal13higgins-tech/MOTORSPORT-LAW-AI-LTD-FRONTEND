@@ -1,46 +1,44 @@
 'use client';
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export interface Citation {
   regulationObjectId: string;
   articleNumber: string;
   clausePath: string;
-  title: string;
-  regulationSet: string;
-  versionLabel: string;
+  regulationSetName: string;
+  regulationVersionLabel: string;
   effectiveDate: string;
 }
 
 export default function CitationCard({ citation }: { citation: Citation }) {
-  const router = useRouter();
-
   return (
-    <button
-      onClick={() => router.push(`/articles/${citation.regulationObjectId}`)}
-      className="w-full text-left bg-white border border-gray-200 rounded p-4 hover:border-gray-400 transition-colors"
-    >
+    <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#1E3A5F] transition-colors">
       <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-sm font-medium text-gray-900">
-            {citation.articleNumber}
-            {citation.clausePath ? ` — ${citation.clausePath}` : ""}
-          </p>
-          <p className="text-sm text-gray-700 mt-0.5">{citation.title}</p>
-        </div>
-        <span className="shrink-0 text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded px-2 py-1">
-          {citation.versionLabel}
+        <p className="text-sm font-semibold font-mono text-[#111827]">
+          Art. {citation.articleNumber}
+          {citation.clausePath && citation.clausePath !== citation.articleNumber
+            ? ` / ${citation.clausePath}`
+            : ""}
+        </p>
+        <span className="shrink-0 text-xs text-[#6B7280] bg-[#FAFAFA] border border-[#E5E7EB] rounded px-2 py-0.5 font-mono">
+          {citation.regulationVersionLabel}
         </span>
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-        <span className="text-xs text-gray-500">
-          <span className="font-medium">Regulation set:</span> {citation.regulationSet}
+
+      <p className="text-xs text-[#6B7280] mt-1.5">{citation.regulationSetName}</p>
+
+      <div className="flex items-center justify-between mt-3">
+        <span className="text-xs text-[#6B7280]">
+          Effective: {new Date(citation.effectiveDate).toLocaleDateString()}
         </span>
-        <span className="text-xs text-gray-500">
-          <span className="font-medium">Effective:</span>{" "}
-          {new Date(citation.effectiveDate).toLocaleDateString()}
-        </span>
+        <Link
+          href={`/articles/${citation.regulationObjectId}`}
+          className="text-xs text-[#1E3A5F] font-medium hover:underline"
+        >
+          Open clause &rarr;
+        </Link>
       </div>
-    </button>
+    </div>
   );
 }

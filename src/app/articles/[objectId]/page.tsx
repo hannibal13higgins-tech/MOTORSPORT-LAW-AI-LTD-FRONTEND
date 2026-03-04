@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 import { apiFetch } from "@/lib/api";
 
 interface RegulationObject {
   id: string;
+  regulationSetId: string;
+  regulationVersionId: string;
   articleNumber: string;
   clausePath: string;
   title: string;
   text: string;
-  tags: string[];
-  regulationVersionId: string;
+  createdAt: string;
 }
 
 export default function ArticlePage() {
@@ -22,20 +22,13 @@ export default function ArticlePage() {
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function load() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.replace("/login");
-        return;
-      }
-
       try {
         const data = await apiFetch(
-          `/regulation-objects/${objectId}`,
-          undefined,
-          session.access_token
+          `/regulation-objects/${objectId}`
         ) as RegulationObject | null;
 
         if (data === null) {
@@ -50,29 +43,38 @@ export default function ArticlePage() {
       }
     }
     load();
-  }, [objectId, router]);
+  }, [objectId]);
+
+  function handleCopyCitation() {
+    if (!article) return;
+    const text = `Art. ${article.articleNumber} / ${article.clausePath}`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-sm text-gray-400">Loading…</p>
+      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+        <p className="text-sm text-[#6B7280]">Loading…</p>
       </main>
     );
   }
 
   if (notFound) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <div className="text-center">
-          <p className="text-lg font-semibold text-gray-900">Not Found</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-lg font-semibold text-[#111827]">Not Found</p>
+          <p className="text-sm text-[#6B7280] mt-1">
             This regulation article does not exist.
           </p>
           <button
             onClick={() => router.back()}
-            className="text-sm text-gray-900 underline mt-4 inline-block"
+            className="text-sm text-[#1E3A5F] underline mt-4 inline-block"
           >
-            Go back
+            Back to console
           </button>
         </div>
       </main>
@@ -81,7 +83,7 @@ export default function ArticlePage() {
 
   if (error) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <p className="text-sm text-red-600">{error}</p>
       </main>
     );
@@ -90,62 +92,57 @@ export default function ArticlePage() {
   if (!article) return null;
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <main className="min-h-screen bg-[#FAFAFA]">
+      {/* Header */}
+      <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between">
         <button
           onClick={() => router.back()}
-          className="text-sm text-gray-500 hover:text-gray-900"
+          className="text-sm text-[#6B7280] hover:text-[#111827]"
         >
-          ← Back
+          &larr; Back to console
+        </button>
+        <button
+          onClick={handleCopyCitation}
+          className="text-sm text-[#1E3A5F] border border-[#E5E7EB] rounded px-3 py-1 hover:bg-[#FAFAFA]"
+        >
+          {copied ? "Copied" : "Copy citation"}
         </button>
       </header>
 
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="mb-6">
-            <h1 className="text-lg font-semibold text-gray-900">{article.title}</h1>
-
-            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2">
-              <div>
-                <dt className="text-xs text-gray-500">Article Number</dt>
-                <dd className="text-sm text-gray-900 font-medium">{article.articleNumber}</dd>
-              </div>
-              {article.clausePath && (
-                <div>
-                  <dt className="text-xs text-gray-500">Clause Path</dt>
-                  <dd className="text-sm text-gray-900 font-medium">{article.clausePath}</dd>
-                </div>
-              )}
-              <div>
-                <dt className="text-xs text-gray-500">Version</dt>
-                <dd className="text-sm text-gray-900 font-medium">{article.regulationVersionId}</dd>
-              </div>
-            </dl>
+        {/* Metadata bar */}
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mb-6 flex flex-wrap gap-x-6 gap-y-2">
+          <div>
+            <p className="text-xs text-[#6B7280]">Article</p>
+            <p className="text-sm font-semibold font-mono text-[#111827]">
+              {article.articleNumber}
+            </p>
           </div>
-
-          {article.tags && article.tags.length > 0 && (
-            <div className="mb-5">
-              <p className="text-xs text-gray-500 mb-1">Tags</p>
-              <div className="flex flex-wrap gap-1">
-                {article.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs bg-gray-100 text-gray-700 rounded px-2 py-0.5"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+          {article.clausePath && (
+            <div>
+              <p className="text-xs text-[#6B7280]">Clause Path</p>
+              <p className="text-sm font-semibold font-mono text-[#111827]">
+                {article.clausePath}
+              </p>
             </div>
           )}
+          <div>
+            <p className="text-xs text-[#6B7280]">Version</p>
+            <p className="text-sm font-medium text-[#111827]">
+              {article.regulationVersionId}
+            </p>
+          </div>
+        </div>
 
-          <div className="border-t border-gray-100 pt-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
-              Full Text
-            </p>
-            <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-              {article.text}
-            </p>
+        {/* Content */}
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
+          {article.title && (
+            <h1 className="text-lg font-semibold text-[#111827] mb-4">
+              {article.title}
+            </h1>
+          )}
+          <div className="text-[15px] text-[#111827] leading-relaxed whitespace-pre-wrap">
+            {article.text}
           </div>
         </div>
       </div>

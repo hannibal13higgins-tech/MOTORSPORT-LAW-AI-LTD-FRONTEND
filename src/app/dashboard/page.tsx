@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
 import { apiFetch } from "@/lib/api";
 
 interface Org {
@@ -20,13 +19,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.replace("/login");
-        return;
-      }
       try {
-        const data = await apiFetch("/orgs", undefined, session.access_token);
+        const data = await apiFetch("/orgs");
         setOrgs((data as Org[]) ?? []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load organisations");
@@ -35,20 +29,15 @@ export default function DashboardPage() {
       }
     }
     load();
-  }, [router]);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
+  }, []);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-base font-semibold text-gray-900">Motorsport Law AI</h1>
+    <main className="min-h-screen bg-[#FAFAFA]">
+      <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between">
+        <h1 className="text-base font-semibold text-[#111827]">Motorsport Law AI</h1>
         <button
-          onClick={handleSignOut}
-          className="text-sm text-gray-500 hover:text-gray-900"
+          onClick={() => router.push("/login")}
+          className="text-sm text-[#6B7280] hover:text-[#111827]"
         >
           Sign out
         </button>
@@ -56,18 +45,16 @@ export default function DashboardPage() {
 
       <div className="max-w-2xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Organisations</h2>
+          <h2 className="text-lg font-semibold text-[#111827]">Organisations</h2>
           <Link
             href="/orgs/new"
-            className="text-sm bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-800"
+            className="text-sm bg-[#1E3A5F] text-white px-4 py-2 rounded hover:bg-[#162d4a]"
           >
             Create Organisation
           </Link>
         </div>
 
-        {loading && (
-          <p className="text-sm text-gray-500">Loading…</p>
-        )}
+        {loading && <p className="text-sm text-[#6B7280]">Loading…</p>}
 
         {error && (
           <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
@@ -76,9 +63,9 @@ export default function DashboardPage() {
         )}
 
         {!loading && !error && orgs.length === 0 && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[#6B7280]">
             No organisations yet.{" "}
-            <Link href="/orgs/new" className="underline text-gray-900">
+            <Link href="/orgs/new" className="underline text-[#1E3A5F]">
               Create one
             </Link>{" "}
             to get started.
@@ -91,12 +78,15 @@ export default function DashboardPage() {
               <li key={org.id}>
                 <Link
                   href={`/orgs/${org.id}`}
-                  className="block bg-white border border-gray-200 rounded px-4 py-3 hover:border-gray-400 transition-colors"
+                  className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded px-4 py-3 hover:border-[#1E3A5F] transition-colors"
                 >
-                  <span className="text-sm font-medium text-gray-900">{org.name}</span>
-                  <span className="block text-xs text-gray-400 mt-0.5">
-                    Created {new Date(org.createdAt).toLocaleDateString()}
-                  </span>
+                  <div>
+                    <span className="text-sm font-medium text-[#111827]">{org.name}</span>
+                    <span className="block text-xs text-[#6B7280] mt-0.5">
+                      Created {new Date(org.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <span className="text-sm text-[#1E3A5F] font-medium">Open</span>
                 </Link>
               </li>
             ))}

@@ -7,6 +7,8 @@ import { apiFetch } from "@/lib/api";
 import AnswerPanel from "@/components/AnswerPanel";
 import RefusalPanel from "@/components/RefusalPanel";
 import CitationCard, { type Citation } from "@/components/CitationCard";
+import CandidateCard, { type DiagnosticCandidate } from "@/components/CandidateCard";
+import SpellcheckNotice from "@/components/SpellcheckNotice";
 import EventStrip from "@/components/EventStrip";
 
 interface Org {
@@ -21,9 +23,42 @@ interface RegulationSet {
   type: string;
 }
 
-type AiResult =
-  | { refused: true; refusalReason: string }
-  | { refused: false; answer: string; citations: Citation[] };
+interface SpellcheckResult {
+  originalQuestion: string;
+  correctedQuestion?: string;
+  changed: boolean;
+  confidence: number;
+}
+
+interface DidYouMean {
+  label: string;
+  query: string;
+  basisObjectIds: string[];
+}
+
+interface Ambiguity {
+  question: string;
+  whyItMatters: string;
+}
+
+interface Diagnostics {
+  reasons: string[];
+  spellcheck?: SpellcheckResult;
+  didYouMean?: DidYouMean[];
+  candidates: DiagnosticCandidate[];
+  ambiguities: Ambiguity[];
+  suggestedQueries: string[];
+}
+
+interface AiResult {
+  refused: boolean;
+  refusalReason?: string;
+  traffic: "GREEN" | "AMBER" | "RED";
+  answer?: string;
+  citations?: Citation[];
+  diagnostics: Diagnostics;
+  answerHash?: string;
+}
 
 export default function OrgConsolePage() {
   const { orgId } = useParams<{ orgId: string }>();
@@ -78,7 +113,10 @@ export default function OrgConsolePage() {
     try {
       const data = await apiFetch(`/orgs/${orgId}/ai/ask`, {
         method: "POST",
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({
+          question,
+          regulationSetId: selectedRegSetId,
+        }),
       }) as AiResult | null;
 
       if (data === null) {
@@ -102,6 +140,10 @@ export default function OrgConsolePage() {
     setQuestion("");
     setResult(null);
     setAskError(null);
+  }
+
+  function handleSelectQuery(query: string) {
+    setQuestion(query);
   }
 
   /* ── Not Found ── */
@@ -136,6 +178,11 @@ export default function OrgConsolePage() {
       </main>
     );
   }
+
+  /* Derive what to show in the right panel */
+  const isGreen = result?.traffic === "GREEN";
+  const showCitations = !asking && result && isGreen && result.citations && result.citations.length > 0;
+  const showCandidates = !asking && result && !isGreen && result.diagnostics.candidates.length > 0;
 
   /* ── 3-Panel Layout ── */
   return (
@@ -264,11 +311,25 @@ export default function OrgConsolePage() {
         )}
 
         {result && !asking && (
-          <div ref={resultRef} className="px-6 pb-6 max-w-3xl">
-            {result.refused ? (
-              <RefusalPanel refusalReason={result.refusalReason} />
+          <div ref={resultRef} className="px-6 pb-6 max-w-3xl space-y-3">
+            {/* Spellcheck notice for non-GREEN (GREEN shows it inside AnswerPanel) */}
+            {!isGreen && result.diagnostics.spellcheck && (
+              <SpellcheckNotice spellcheck={result.diagnostics.spellcheck} />
+            )}
+
+            {isGreen && result.answer ? (
+              <AnswerPanel
+                answer={result.answer}
+                reasonFooter={result.diagnostics.reasons[0]}
+                spellcheck={result.diagnostics.spellcheck}
+              />
             ) : (
-              <AnswerPanel answer={result.answer} />
+              <RefusalPanel
+                traffic={result.traffic}
+                refusalReason={result.refusalReason}
+                diagnostics={result.diagnostics}
+                onSelectQuery={handleSelectQuery}
+              />
             )}
           </div>
         )}
@@ -283,7 +344,7 @@ export default function OrgConsolePage() {
       <aside className="w-80 shrink-0 bg-white border-l border-[#E5E7EB] overflow-y-auto">
         <div className="px-5 py-5 border-b border-[#E5E7EB]">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
-            Citations
+            {showCandidates ? "Related clauses found" : "Citations"}
           </p>
         </div>
 
@@ -299,19 +360,30 @@ export default function OrgConsolePage() {
             </div>
           )}
 
-          {!asking && result && !result.refused && result.citations.length > 0 && (
-            result.citations.map((c) => (
-              <CitationCard key={c.regulationObjectId} citation={c} />
-            ))
-          )}
+          {/* GREEN: show citations */}
+          {showCitations && result.citations!.map((c) => (
+            <CitationCard key={c.regulationObjectId} citation={c} />
+          ))}
 
-          {!asking && result && !result.refused && result.citations.length === 0 && (
+          {/* Non-GREEN: show candidates */}
+          {showCandidates && result.diagnostics.candidates.map((c) => (
+            <CandidateCard key={c.regulationObjectId} candidate={c} />
+          ))}
+
+          {/* Empty states */}
+          {!asking && result && isGreen && (!result.citations || result.citations.length === 0) && (
             <p className="text-xs text-[#6B7280] py-8 text-center">
               No citations returned.
             </p>
           )}
 
-          {!asking && (!result || result.refused) && (
+          {!asking && result && !isGreen && result.diagnostics.candidates.length === 0 && (
+            <p className="text-xs text-[#6B7280] py-8 text-center">
+              No related clauses found for this query.
+            </p>
+          )}
+
+          {!asking && !result && (
             <p className="text-xs text-[#6B7280] py-8 text-center">
               Citations will appear here after you ask a question.
             </p>

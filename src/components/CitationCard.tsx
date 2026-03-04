@@ -4,11 +4,14 @@ import Link from "next/link";
 
 export interface Citation {
   regulationObjectId: string;
+  regulationSetId: string;
+  regulationSetName: string;
+  regulationVersionId: string;
+  versionLabel: string;
+  effectiveDate: string;
   articleNumber: string;
   clausePath: string;
-  regulationSetName: string;
-  regulationVersionLabel: string;
-  effectiveDate: string;
+  title?: string;
 }
 
 export default function CitationCard({ citation }: { citation: Citation }) {
@@ -22,9 +25,13 @@ export default function CitationCard({ citation }: { citation: Citation }) {
             : ""}
         </p>
         <span className="shrink-0 text-xs text-[#6B7280] bg-[#FAFAFA] border border-[#E5E7EB] rounded px-2 py-0.5 font-mono">
-          {citation.regulationVersionLabel}
+          {citation.versionLabel}
         </span>
       </div>
+
+      {citation.title && (
+        <p className="text-xs font-medium text-[#111827] mt-1">{citation.title}</p>
+      )}
 
       <p className="text-xs text-[#6B7280] mt-1.5">{citation.regulationSetName}</p>
 

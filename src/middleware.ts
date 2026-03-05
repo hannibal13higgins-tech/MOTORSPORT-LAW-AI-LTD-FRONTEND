@@ -24,10 +24,15 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  /*
+   * getUser() validates the JWT server-side (unlike getSession which only
+   * reads local cookies and may miss freshly-set tokens after OAuth redirect).
+   * This also refreshes the token if needed, and setAll above ensures the
+   * refreshed cookies are forwarded to the browser.
+   */
+  const { data: { user } } = await supabase.auth.getUser();
 
-  /* No session on protected route → redirect to login */
-  if (!session) {
+  if (!user) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }

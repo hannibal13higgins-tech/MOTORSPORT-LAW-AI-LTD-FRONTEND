@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 interface RegulationObject {
   id: string;
@@ -22,6 +23,7 @@ export default function ArticlePage() {
   const qClausePath = searchParams.get("clausePath");
   const qVersionLabel = searchParams.get("versionLabel");
   const qEffectiveDate = searchParams.get("effectiveDate");
+  const qOrgId = searchParams.get("orgId");
   const [article, setArticle] = useState<RegulationObject | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +67,26 @@ export default function ArticlePage() {
     });
   }
 
+  function handleBack() {
+    if (qOrgId) {
+      router.push(`/orgs/${qOrgId}/console`);
+    } else {
+      router.push("/dashboard");
+    }
+  }
+
+  /* Build breadcrumbs */
+  const crumbs: { label: string; href?: string }[] = [
+    { label: "Dashboard", href: "/dashboard" },
+  ];
+  if (qOrgId) {
+    crumbs.push({ label: "Team", href: `/orgs/${qOrgId}` });
+    crumbs.push({ label: "Console", href: `/orgs/${qOrgId}/console` });
+  }
+  crumbs.push({
+    label: article ? `Article ${article.articleNumber}` : "Article",
+  });
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
@@ -82,10 +104,10 @@ export default function ArticlePage() {
             This regulation article does not exist.
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="text-sm text-[#1E3A5F] underline mt-4 inline-block"
           >
-            Back to console
+            Back
           </button>
         </div>
       </main>
@@ -106,12 +128,15 @@ export default function ArticlePage() {
     <main className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
       <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between">
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-[#6B7280] hover:text-[#111827]"
-        >
-          &larr; Back to console
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleBack}
+            className="text-sm text-[#6B7280] hover:text-[#111827]"
+          >
+            &larr; Back
+          </button>
+          <Breadcrumbs crumbs={crumbs} />
+        </div>
         <button
           onClick={handleCopyCitation}
           className="text-sm text-[#1E3A5F] border border-[#E5E7EB] rounded px-3 py-1 hover:bg-[#FAFAFA]"

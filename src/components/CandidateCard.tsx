@@ -14,9 +14,10 @@ export interface DiagnosticCandidate {
 interface Props {
   candidate: DiagnosticCandidate;
   maxScore: number;
+  orgId?: string;
 }
 
-export default function CandidateCard({ candidate, maxScore }: Props) {
+export default function CandidateCard({ candidate, maxScore, orgId }: Props) {
   const pct = maxScore > 0 ? Math.round((candidate.score / maxScore) * 100) : 0;
 
   return (
@@ -48,7 +49,7 @@ export default function CandidateCard({ candidate, maxScore }: Props) {
           />
         </div>
         <Link
-          href={`/articles/${candidate.regulationObjectId}?clausePath=${encodeURIComponent(candidate.clausePath)}`}
+          href={`/articles/${candidate.regulationObjectId}?clausePath=${encodeURIComponent(candidate.clausePath)}${orgId ? `&orgId=${orgId}` : ""}`}
           className="text-xs text-[#1E3A5F] font-medium hover:underline shrink-0"
         >
           Open clause &rarr;

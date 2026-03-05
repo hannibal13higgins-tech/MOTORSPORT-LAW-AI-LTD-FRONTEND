@@ -14,7 +14,7 @@ export interface Citation {
   title?: string;
 }
 
-export default function CitationCard({ citation }: { citation: Citation }) {
+export default function CitationCard({ citation, orgId }: { citation: Citation; orgId?: string }) {
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#1E3A5F] transition-colors">
       <div className="flex items-start justify-between gap-2">
@@ -40,7 +40,7 @@ export default function CitationCard({ citation }: { citation: Citation }) {
           Effective: {new Date(citation.effectiveDate).toLocaleDateString()}
         </span>
         <Link
-          href={`/articles/${citation.regulationObjectId}?clausePath=${encodeURIComponent(citation.clausePath)}&versionLabel=${encodeURIComponent(citation.versionLabel)}&effectiveDate=${encodeURIComponent(citation.effectiveDate)}`}
+          href={`/articles/${citation.regulationObjectId}?clausePath=${encodeURIComponent(citation.clausePath)}&versionLabel=${encodeURIComponent(citation.versionLabel)}&effectiveDate=${encodeURIComponent(citation.effectiveDate)}${orgId ? `&orgId=${orgId}` : ""}`}
           className="text-xs text-[#1E3A5F] font-medium hover:underline"
         >
           Open clause &rarr;

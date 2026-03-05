@@ -11,8 +11,13 @@ export interface DiagnosticCandidate {
   score: number;
 }
 
-export default function CandidateCard({ candidate }: { candidate: DiagnosticCandidate }) {
-  const pct = Math.min(candidate.score * 20, 100); // score 5 = 100%
+interface Props {
+  candidate: DiagnosticCandidate;
+  maxScore: number;
+}
+
+export default function CandidateCard({ candidate, maxScore }: Props) {
+  const pct = maxScore > 0 ? Math.round((candidate.score / maxScore) * 100) : 0;
 
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#1E3A5F] transition-colors">
@@ -23,9 +28,6 @@ export default function CandidateCard({ candidate }: { candidate: DiagnosticCand
             ? ` / ${candidate.clausePath}`
             : ""}
         </p>
-        <span className="shrink-0 text-xs text-[#6B7280] bg-[#FAFAFA] border border-[#E5E7EB] rounded px-2 py-0.5">
-          {candidate.score} hit{candidate.score !== 1 ? "s" : ""}
-        </span>
       </div>
 
       {candidate.title && (
@@ -34,9 +36,12 @@ export default function CandidateCard({ candidate }: { candidate: DiagnosticCand
 
       <p className="text-xs text-[#6B7280] mt-1.5 line-clamp-3">{candidate.snippet}</p>
 
-      {/* Relevance bar */}
+      {/* Proximity bar — relative to highest-scoring candidate */}
       <div className="mt-2.5 flex items-center gap-2">
-        <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden"
+          title="Relative match to the question within retrieved clauses."
+        >
           <div
             className="h-full bg-[#1E3A5F] rounded-full transition-all"
             style={{ width: `${pct}%` }}

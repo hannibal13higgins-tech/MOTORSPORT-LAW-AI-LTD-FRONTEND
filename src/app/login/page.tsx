@@ -23,7 +23,7 @@ export default function LoginPage() {
           <h1 className="text-xl font-semibold text-[#111827] mb-1">
             Motorsport Law AI
           </h1>
-          <p className="text-sm text-[#6B7280] mb-6">Sign in to your account</p>
+          <p className="text-sm text-[#6B7280] mb-6">Sign in to access the regulatory console</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

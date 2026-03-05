@@ -24,9 +24,12 @@ interface Props {
   refusalReason?: string;
   diagnostics: Diagnostics;
   onSelectQuery: (query: string) => void;
+  onRefine?: (query: string) => void;
 }
 
-export default function RefusalPanel({ traffic, diagnostics, onSelectQuery }: Props) {
+export default function RefusalPanel({ traffic, diagnostics, onSelectQuery, onRefine }: Props) {
+  const isAmber = traffic === "AMBER";
+
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 space-y-4">
       <TrafficBadge traffic={traffic} />
@@ -41,6 +44,16 @@ export default function RefusalPanel({ traffic, diagnostics, onSelectQuery }: Pr
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Refine question button — AMBER only, when suggestedQueries exist */}
+      {isAmber && diagnostics.suggestedQueries.length > 0 && onRefine && (
+        <button
+          onClick={() => onRefine(diagnostics.suggestedQueries[0])}
+          className="text-sm font-medium text-[#1E3A5F] border border-[#1E3A5F] rounded px-4 py-2 hover:bg-[#1E3A5F] hover:text-white transition-colors"
+        >
+          Refine question
+        </button>
       )}
 
       {/* Did You Mean */}
@@ -63,14 +76,16 @@ export default function RefusalPanel({ traffic, diagnostics, onSelectQuery }: Pr
         </div>
       )}
 
-      {/* Suggested Queries */}
-      <SuggestedQueries
-        queries={diagnostics.suggestedQueries}
-        onSelect={onSelectQuery}
-      />
+      {/* Suggested Queries — AMBER only */}
+      {isAmber && (
+        <SuggestedQueries
+          queries={diagnostics.suggestedQueries}
+          onSelect={onSelectQuery}
+        />
+      )}
 
-      {/* Ambiguities */}
-      {diagnostics.ambiguities.length > 0 && (
+      {/* Ambiguities — AMBER only */}
+      {isAmber && diagnostics.ambiguities.length > 0 && (
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280] mb-2">
             Things to consider:

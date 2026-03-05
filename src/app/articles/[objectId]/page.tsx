@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 
@@ -27,6 +27,7 @@ export default function ArticlePage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const highlightRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -48,6 +49,12 @@ export default function ArticlePage() {
     }
     load();
   }, [objectId]);
+
+  useEffect(() => {
+    if (article && qClausePath && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [article, qClausePath]);
 
   function handleCopyCitation() {
     if (!article) return;
@@ -153,8 +160,33 @@ export default function ArticlePage() {
               {article.title}
             </h1>
           )}
+
+          {qClausePath && (
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#1E3A5F] mb-3">
+              Cited clause
+            </p>
+          )}
+
           <div className="text-[15px] text-[#111827] leading-relaxed whitespace-pre-wrap">
-            {article.text}
+            {qClausePath ? (
+              article.text.split("\n").map((line, i) => {
+                const isMatch = line.includes(qClausePath);
+                return isMatch ? (
+                  <span
+                    key={i}
+                    ref={highlightRef}
+                    className="bg-amber-100 border-l-4 border-amber-400 pl-3 -ml-3 block"
+                  >
+                    {line}
+                    {"\n"}
+                  </span>
+                ) : (
+                  <span key={i}>{line}{"\n"}</span>
+                );
+              })
+            ) : (
+              article.text
+            )}
           </div>
         </div>
       </div>

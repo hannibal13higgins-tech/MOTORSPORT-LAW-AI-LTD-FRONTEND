@@ -183,6 +183,7 @@ export default function OrgConsolePage() {
   const isGreen = result?.traffic === "GREEN";
   const showCitations = !asking && result && isGreen && result.citations && result.citations.length > 0;
   const showCandidates = !asking && result && !isGreen && result.diagnostics.candidates.length > 0;
+  const candidateMaxScore = result ? Math.max(...result.diagnostics.candidates.map((c) => c.score), 1) : 1;
 
   /* ── 3-Panel Layout ── */
   return (
@@ -268,7 +269,7 @@ export default function OrgConsolePage() {
               className="w-full border border-[#E5E7EB] rounded-lg px-4 py-3 text-[15px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none"
             />
             <p className="text-xs text-[#6B7280]">
-              Answers are limited to the selected rulebook and must cite clauses.
+              This system answers only when the regulation text can be located and cited.
             </p>
 
             {askError && (
@@ -320,6 +321,7 @@ export default function OrgConsolePage() {
             {isGreen && result.answer ? (
               <AnswerPanel
                 answer={result.answer}
+                citations={result.citations ?? []}
                 reasonFooter={result.diagnostics.reasons[0]}
                 spellcheck={result.diagnostics.spellcheck}
               />
@@ -329,6 +331,7 @@ export default function OrgConsolePage() {
                 refusalReason={result.refusalReason}
                 diagnostics={result.diagnostics}
                 onSelectQuery={handleSelectQuery}
+                onRefine={handleSelectQuery}
               />
             )}
           </div>
@@ -367,7 +370,7 @@ export default function OrgConsolePage() {
 
           {/* Non-GREEN: show candidates */}
           {showCandidates && result.diagnostics.candidates.map((c) => (
-            <CandidateCard key={c.regulationObjectId} candidate={c} />
+            <CandidateCard key={c.regulationObjectId} candidate={c} maxScore={candidateMaxScore} />
           ))}
 
           {/* Empty states */}

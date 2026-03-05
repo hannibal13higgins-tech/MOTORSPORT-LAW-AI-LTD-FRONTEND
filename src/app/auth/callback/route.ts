@@ -6,18 +6,19 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const origin = requestUrl.origin;
 
-  console.log("[auth/callback] Full URL:", request.url);
-  console.log("[auth/callback] code param:", code);
-  console.log("[auth/callback] SUPABASE_URL set:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log("[auth/callback] ANON_KEY set:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
   if (!code) {
-    console.error("[auth/callback] No code param — possible implicit flow or misconfiguration");
+    console.error("[auth/callback] No code param");
     return NextResponse.redirect(new URL("/login", origin));
   }
 
-  /* Collect cookies set by Supabase during the exchange */
-  const cookieStore: { name: string; value: string; options?: Record<string, unknown> }[] = [];
+  /**
+   * Create the redirect response FIRST so Supabase can set cookies
+   * directly on it. The `getAll` reads from the request initially,
+   * then sees its own writes because `setAll` pushes into the same
+   * response object that will be returned to the browser.
+   */
+  const redirectTo = new URL("/dashboard", origin);
+  const response = NextResponse.redirect(redirectTo);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,27 +29,20 @@ export async function GET(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
-          cookieStore.push(...cookiesToSet);
+          for (const { name, value, options } of cookiesToSet) {
+            response.cookies.set(name, value, options);
+          }
         },
       },
     }
   );
 
   try {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
       console.error("[auth/callback] exchangeCodeForSession error:", error.message);
-      console.error("[auth/callback] error details:", JSON.stringify(error));
       return NextResponse.redirect(new URL("/login", origin));
-    }
-
-    console.log("[auth/callback] Exchange OK — user:", data.session?.user?.email);
-    console.log("[auth/callback] Cookies to set:", cookieStore.length);
-
-    const response = NextResponse.redirect(new URL("/dashboard", origin));
-    for (const { name, value, options } of cookieStore) {
-      response.cookies.set(name, value, options);
     }
 
     return response;

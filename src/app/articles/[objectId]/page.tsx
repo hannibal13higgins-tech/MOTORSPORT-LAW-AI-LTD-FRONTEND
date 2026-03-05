@@ -131,7 +131,7 @@ export default function ArticlePage() {
         <div className="flex items-center gap-4">
           <button
             onClick={handleBack}
-            className="text-sm text-[#6B7280] hover:text-[#111827]"
+            className="text-sm text-[#6B7280] hover:text-[#111827] active:scale-[0.98] transition-transform"
           >
             &larr; Back
           </button>
@@ -139,15 +139,15 @@ export default function ArticlePage() {
         </div>
         <button
           onClick={handleCopyCitation}
-          className="text-sm text-[#1E3A5F] border border-[#E5E7EB] rounded px-3 py-1 hover:bg-[#FAFAFA]"
+          className="text-sm text-[#1E3A5F] border border-[#E5E7EB] rounded px-3 py-1 hover:bg-[#FAFAFA] active:scale-[0.98] transition-all"
         >
           {copied ? "Copied" : "Copy citation"}
         </button>
       </header>
 
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Metadata bar */}
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mb-6 flex flex-wrap gap-x-6 gap-y-2">
+        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mb-8 flex flex-wrap gap-x-6 gap-y-2">
           <div>
             <p className="text-xs text-[#6B7280]">Article</p>
             <p className="text-sm font-semibold font-mono text-[#111827]">
@@ -192,7 +192,7 @@ export default function ArticlePage() {
             </p>
           )}
 
-          <div className="text-[15px] text-[#111827] leading-relaxed whitespace-pre-wrap">
+          <div className="text-[15px] text-[#111827] leading-[1.75] whitespace-pre-wrap">
             {qClausePath ? (
               article.text.split("\n").map((line, i) => {
                 const isMatch = line.includes(qClausePath);

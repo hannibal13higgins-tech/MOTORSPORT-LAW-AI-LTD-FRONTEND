@@ -1,4 +1,3 @@
-import TrafficBadge from "./TrafficBadge";
 import SpellcheckNotice from "./SpellcheckNotice";
 import { type Citation } from "./CitationCard";
 
@@ -25,14 +24,6 @@ export default function AnswerPanel({ answer, citations, reasonFooter, spellchec
       {spellcheck && <SpellcheckNotice spellcheck={spellcheck} />}
 
       <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
-        {/* Traffic badge */}
-        <div className="flex items-center gap-3 mb-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
-            Regulatory Analysis
-          </p>
-          <TrafficBadge traffic="GREEN" />
-        </div>
-
         {/* Rulebook context */}
         {lead && (
           <div className="bg-[#FAFAFA] border border-[#E5E7EB] rounded p-3 mb-4 flex flex-wrap gap-x-6 gap-y-1 text-xs">
@@ -55,19 +46,19 @@ export default function AnswerPanel({ answer, citations, reasonFooter, spellchec
 
         {/* Grounding line */}
         {lead && (
-          <p className="text-xs text-[#6B7280] mb-4">
+          <p className="text-xs text-[#6B7280] mb-5">
             Answer grounded in {count} cited clause{count !== 1 ? "s" : ""} from{" "}
             {lead.regulationSetName} &mdash; {lead.versionLabel}
           </p>
         )}
 
-        {/* Answer text */}
-        <div className="text-[15px] text-[#111827] leading-relaxed whitespace-pre-wrap">
+        {/* Answer text — increased line height and paragraph spacing */}
+        <div className="text-[15px] text-[#111827] leading-[1.75] whitespace-pre-wrap space-y-4">
           {answer}
         </div>
 
         {reasonFooter && (
-          <p className="text-xs text-[#6B7280] mt-4 pt-3 border-t border-[#E5E7EB]">
+          <p className="text-xs text-[#6B7280] mt-5 pt-3 border-t border-[#E5E7EB]">
             {reasonFooter}
           </p>
         )}

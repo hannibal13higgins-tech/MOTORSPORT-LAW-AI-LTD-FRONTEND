@@ -78,7 +78,7 @@ export default function DashboardPage() {
               <li key={org.id}>
                 <Link
                   href={`/orgs/${org.id}`}
-                  className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded px-4 py-3 hover:border-[#1E3A5F] transition-colors"
+                  className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded px-4 py-3 hover:border-[#1E3A5F] hover:shadow-sm transition-all duration-150"
                 >
                   <div>
                     <span className="text-sm font-medium text-[#111827]">{org.name}</span>

@@ -10,6 +10,7 @@ import RefusalPanel from "@/components/RefusalPanel";
 import CitationCard, { type Citation } from "@/components/CitationCard";
 import CandidateCard, { type DiagnosticCandidate } from "@/components/CandidateCard";
 import SpellcheckNotice from "@/components/SpellcheckNotice";
+import TrafficBadge, { TRAFFIC_CONFIG } from "@/components/TrafficBadge";
 import EventStrip from "@/components/EventStrip";
 
 interface Org {
@@ -81,6 +82,7 @@ export default function ConsolePage() {
   const [pageLoading, setPageLoading] = useState(true);
 
   const resultRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const selectedSet = regulationSets.find((s) => s.id === selectedRegSetId);
 
@@ -114,7 +116,6 @@ export default function ConsolePage() {
         const sets = (setsData as RegulationSet[]) ?? [];
         setRegulationSets(sets);
 
-        /* If setId came from URL, validate it exists */
         const urlSetId = searchParams.get("setId") ?? "";
         if (urlSetId && sets.some((s) => s.id === urlSetId)) {
           setSelectedRegSetId(urlSetId);
@@ -183,13 +184,14 @@ export default function ConsolePage() {
   function handleSelectQuery(query: string) {
     setQuestion(query);
     syncQueryParams(selectedRegSetId, query);
+    setTimeout(() => textareaRef.current?.focus(), 50);
   }
 
   function handleBack() {
     router.push(`/orgs/${orgId}`);
   }
 
-  /* ── Not Found ── */
+  /* ── Error / Loading states ── */
   if (pageError === "NOT_FOUND") {
     return (
       <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
@@ -222,11 +224,30 @@ export default function ConsolePage() {
     );
   }
 
-  /* Derive what to show in the right panel */
+  /* ── Derived state ── */
   const isGreen = result?.traffic === "GREEN";
+  const isRed = result?.traffic === "RED";
   const showCitations = !asking && result && isGreen && result.citations && result.citations.length > 0;
   const showCandidates = !asking && result && !isGreen && result.diagnostics.candidates.length > 0;
   const candidateMaxScore = result ? Math.max(...result.diagnostics.candidates.map((c) => c.score), 1) : 1;
+
+  /* Right panel header per traffic state */
+  const rightPanelHeader = (() => {
+    if (!result || asking) return "Citations";
+    if (isGreen) return "Cited clauses";
+    if (result.diagnostics.candidates.length > 0) return "Retrieved clauses";
+    return "No clauses retrieved";
+  })();
+
+  /* Traffic config for banner */
+  const trafficConf = result ? TRAFFIC_CONFIG[result.traffic] : null;
+
+  /* Context line values */
+  const ctxName = selectedSet?.name ?? "Not selected";
+  const ctxVersion = result?.citations?.[0]?.versionLabel ?? (selectedSet ? "2025 Issue 5" : "\u2014");
+  const ctxEffective = result?.citations?.[0]?.effectiveDate
+    ? new Date(result.citations[0].effectiveDate).toLocaleDateString()
+    : "\u2014";
 
   /* ── 3-Panel Layout ── */
   return (
@@ -276,12 +297,12 @@ export default function ConsolePage() {
 
       {/* ═══ Main Panel ═══ */}
       <main className="flex-1 min-w-0 overflow-y-auto">
-        {/* Breadcrumbs + Back button */}
-        <div className="bg-white border-b border-[#E5E7EB] px-6 py-4">
+        {/* Breadcrumbs + Back */}
+        <div className="bg-white border-b border-[#E5E7EB] px-6 py-3">
           <div className="flex items-center gap-4">
             <button
               onClick={handleBack}
-              className="text-sm text-[#6B7280] hover:text-[#111827]"
+              className="text-sm text-[#6B7280] hover:text-[#111827] active:scale-[0.98] transition-transform"
             >
               &larr; Back
             </button>
@@ -295,8 +316,8 @@ export default function ConsolePage() {
           </div>
         </div>
 
-        {/* Regulation set selector bar */}
-        <div className="bg-white border-b border-[#E5E7EB] px-6 py-4">
+        {/* Page title context line */}
+        <div className="bg-white border-b border-[#E5E7EB] px-6 py-3">
           <div className="flex items-center gap-4 flex-wrap">
             <select
               value={selectedRegSetId}
@@ -309,12 +330,6 @@ export default function ConsolePage() {
               ))}
             </select>
 
-            {selectedSet && (
-              <span className="text-xs bg-[#FAFAFA] border border-[#E5E7EB] rounded px-2 py-1 font-mono text-[#6B7280]">
-                2025 Issue 5
-              </span>
-            )}
-
             <div className="flex gap-2 ml-auto">
               <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-0.5">
                 Citations enforced
@@ -324,7 +339,25 @@ export default function ConsolePage() {
               </span>
             </div>
           </div>
+
+          <div className="flex items-center gap-x-6 gap-y-1 flex-wrap mt-2 text-xs text-[#6B7280]">
+            <span>Rulebook: <span className="font-medium text-[#111827]">{ctxName}</span></span>
+            <span>Version: <span className="font-medium text-[#111827]">{ctxVersion}</span></span>
+            <span>Effective: <span className="font-medium text-[#111827]">{ctxEffective}</span></span>
+          </div>
         </div>
+
+        {/* ── Traffic state banner ── */}
+        {result && !asking && trafficConf && (
+          <div className={`px-6 py-3 border-b border-l-4 ${trafficConf.bg} ${trafficConf.borderLeft} ${trafficConf.border}`}>
+            <div className="flex items-center gap-4">
+              <TrafficBadge traffic={result.traffic} size="lg" />
+              <p className="text-sm text-[#111827]">
+                {result.diagnostics.reasons[0] ?? ""}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Question composer */}
         <div className="px-6 py-6 max-w-3xl">
@@ -333,6 +366,7 @@ export default function ConsolePage() {
               Regulatory question
             </label>
             <textarea
+              ref={textareaRef}
               value={question}
               onChange={(e) => handleQuestionChange(e.target.value)}
               rows={4}
@@ -353,14 +387,14 @@ export default function ConsolePage() {
               <button
                 type="submit"
                 disabled={!selectedRegSetId || asking || !question.trim()}
-                className="bg-[#1E3A5F] text-white text-sm font-medium px-6 py-2 rounded hover:bg-[#162d4a] disabled:opacity-40 disabled:cursor-not-allowed"
+                className="bg-[#1E3A5F] text-white text-sm font-medium px-6 py-2 rounded hover:bg-[#162d4a] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {asking ? "Asking…" : "Ask"}
+                {asking ? "Analysing\u2026" : "Ask"}
               </button>
               <button
                 type="button"
                 onClick={handleClear}
-                className="text-sm text-[#6B7280] px-4 py-2 border border-[#E5E7EB] rounded hover:bg-[#FAFAFA]"
+                className="text-sm text-[#6B7280] px-4 py-2 border border-[#E5E7EB] rounded hover:bg-[#FAFAFA] active:scale-[0.98] transition-all"
               >
                 Clear
               </button>
@@ -368,47 +402,55 @@ export default function ConsolePage() {
           </form>
         </div>
 
-        {/* Answer / Refusal */}
-        {asking && (
-          <div className="px-6 pb-6 max-w-3xl">
-            <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/3 mb-4" />
-              <div className="space-y-2">
-                <div className="h-3 bg-gray-200 rounded w-full" />
-                <div className="h-3 bg-gray-200 rounded w-5/6" />
-                <div className="h-3 bg-gray-200 rounded w-4/6" />
+        {/* Answer / Refusal — min-height prevents layout jump */}
+        <div className="min-h-[120px]">
+          {asking && (
+            <div className="px-6 pb-6 max-w-3xl">
+              <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/3 mb-4" />
+                <div className="space-y-2.5">
+                  <div className="h-3 bg-gray-200 rounded w-full" />
+                  <div className="h-3 bg-gray-200 rounded w-5/6" />
+                  <div className="h-3 bg-gray-200 rounded w-4/6" />
+                  <div className="h-3 bg-gray-200 rounded w-3/6" />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {result && !asking && (
-          <div ref={resultRef} className="px-6 pb-6 max-w-3xl space-y-3">
-            {/* Spellcheck notice for non-GREEN (GREEN shows it inside AnswerPanel) */}
-            {!isGreen && result.diagnostics.spellcheck && (
-              <SpellcheckNotice spellcheck={result.diagnostics.spellcheck} />
-            )}
+          {result && !asking && (
+            <div ref={resultRef} className="px-6 pb-6 max-w-3xl space-y-3">
+              {!isGreen && result.diagnostics.spellcheck && (
+                <SpellcheckNotice spellcheck={result.diagnostics.spellcheck} />
+              )}
 
-            {isGreen && result.answer ? (
-              <AnswerPanel
-                answer={result.answer}
-                citations={result.citations ?? []}
-                reasonFooter={result.diagnostics.reasons[0]}
-                spellcheck={result.diagnostics.spellcheck}
-              />
-            ) : (
-              <RefusalPanel
-                traffic={result.traffic}
-                refusalReason={result.refusalReason}
-                diagnostics={result.diagnostics}
-                onSelectQuery={handleSelectQuery}
-                onRefine={handleSelectQuery}
-              />
-            )}
-          </div>
-        )}
+              {isGreen && result.answer ? (
+                <AnswerPanel
+                  answer={result.answer}
+                  citations={result.citations ?? []}
+                  reasonFooter={result.diagnostics.reasons[0]}
+                  spellcheck={result.diagnostics.spellcheck}
+                />
+              ) : (
+                <RefusalPanel
+                  traffic={result.traffic}
+                  refusalReason={result.refusalReason}
+                  diagnostics={result.diagnostics}
+                  onSelectQuery={handleSelectQuery}
+                  onRefine={handleSelectQuery}
+                />
+              )}
 
-        {/* Audit trail at bottom */}
+              {isRed && (
+                <p className="text-xs text-[#6B7280] pt-2">
+                  Try narrowing the question or selecting a different rulebook.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Audit trail */}
         <div className="px-6 pb-8 max-w-3xl border-t border-[#E5E7EB] pt-6 mt-2">
           <EventStrip orgId={orgId} />
         </div>
@@ -418,7 +460,7 @@ export default function ConsolePage() {
       <aside className="w-80 shrink-0 bg-white border-l border-[#E5E7EB] overflow-y-auto">
         <div className="px-5 py-5 border-b border-[#E5E7EB]">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
-            {showCandidates ? "Related clauses found" : "Citations"}
+            {rightPanelHeader}
           </p>
         </div>
 
@@ -427,24 +469,22 @@ export default function ConsolePage() {
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="border border-[#E5E7EB] rounded-lg p-4 animate-pulse">
-                  <div className="h-3 bg-gray-200 rounded w-2/3 mb-2" />
+                  <div className="h-3 bg-gray-200 rounded w-2/3 mb-3" />
+                  <div className="h-2 bg-gray-200 rounded w-full mb-2" />
                   <div className="h-2 bg-gray-200 rounded w-1/2" />
                 </div>
               ))}
             </div>
           )}
 
-          {/* GREEN: show citations */}
           {showCitations && result.citations!.map((c) => (
             <CitationCard key={c.regulationObjectId} citation={c} orgId={orgId} />
           ))}
 
-          {/* Non-GREEN: show candidates */}
           {showCandidates && result.diagnostics.candidates.map((c) => (
             <CandidateCard key={c.regulationObjectId} candidate={c} maxScore={candidateMaxScore} orgId={orgId} />
           ))}
 
-          {/* Empty states */}
           {!asking && result && isGreen && (!result.citations || result.citations.length === 0) && (
             <p className="text-xs text-[#6B7280] py-8 text-center">
               No citations returned.
@@ -453,7 +493,7 @@ export default function ConsolePage() {
 
           {!asking && result && !isGreen && result.diagnostics.candidates.length === 0 && (
             <p className="text-xs text-[#6B7280] py-8 text-center">
-              No related clauses found for this query.
+              No clauses retrieved for this query.
             </p>
           )}
 

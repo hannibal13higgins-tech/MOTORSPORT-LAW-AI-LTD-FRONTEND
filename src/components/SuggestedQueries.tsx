@@ -16,7 +16,7 @@ export default function SuggestedQueries({ queries, onSelect }: Props) {
           <button
             key={i}
             onClick={() => onSelect(q)}
-            className="text-sm text-[#1E3A5F] border border-[#1E3A5F] rounded-full px-4 py-1.5 hover:bg-[#1E3A5F] hover:text-white transition-colors"
+            className="text-sm text-[#1E3A5F] border border-[#1E3A5F] rounded-full px-4 py-1.5 hover:bg-[#1E3A5F] hover:text-white active:scale-[0.98] transition-all"
           >
             {q}
           </button>

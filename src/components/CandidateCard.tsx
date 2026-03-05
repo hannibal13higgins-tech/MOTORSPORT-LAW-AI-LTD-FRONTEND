@@ -21,7 +21,7 @@ export default function CandidateCard({ candidate, maxScore, orgId }: Props) {
   const pct = maxScore > 0 ? Math.round((candidate.score / maxScore) * 100) : 0;
 
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#1E3A5F] transition-colors">
+    <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#1E3A5F] hover:shadow-sm transition-all duration-150">
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-semibold font-mono text-[#111827]">
           Art. {candidate.articleNumber}

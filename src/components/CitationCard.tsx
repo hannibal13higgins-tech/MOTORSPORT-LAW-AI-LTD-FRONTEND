@@ -16,29 +16,28 @@ export interface Citation {
 
 export default function CitationCard({ citation, orgId }: { citation: Citation; orgId?: string }) {
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#1E3A5F] transition-colors">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold font-mono text-[#111827]">
-          Art. {citation.articleNumber}
-          {citation.clausePath && citation.clausePath !== citation.articleNumber
-            ? ` / ${citation.clausePath}`
-            : ""}
-        </p>
-        <span className="shrink-0 text-xs text-[#6B7280] bg-[#FAFAFA] border border-[#E5E7EB] rounded px-2 py-0.5 font-mono">
-          {citation.versionLabel}
-        </span>
-      </div>
+    <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#1E3A5F] hover:shadow-sm transition-all duration-150">
+      <p className="text-sm font-semibold font-mono text-[#111827]">
+        Article {citation.articleNumber}
+      </p>
 
-      {citation.title && (
-        <p className="text-xs font-medium text-[#111827] mt-1">{citation.title}</p>
+      {citation.clausePath && citation.clausePath !== citation.articleNumber && (
+        <p className="text-xs font-mono text-[#6B7280] mt-0.5">
+          Clause {citation.clausePath}
+        </p>
       )}
 
-      <p className="text-xs text-[#6B7280] mt-1.5">{citation.regulationSetName}</p>
+      {citation.title && (
+        <p className="text-xs font-medium text-[#111827] mt-1.5">{citation.title}</p>
+      )}
 
-      <div className="flex items-center justify-between mt-3">
-        <span className="text-xs text-[#6B7280]">
-          Effective: {new Date(citation.effectiveDate).toLocaleDateString()}
-        </span>
+      <div className="mt-2 text-[11px] text-[#6B7280] flex flex-wrap gap-x-4 gap-y-0.5">
+        <span>{citation.regulationSetName}</span>
+        <span>{citation.versionLabel}</span>
+        <span>Effective: {new Date(citation.effectiveDate).toLocaleDateString()}</span>
+      </div>
+
+      <div className="mt-3 pt-2 border-t border-[#E5E7EB]">
         <Link
           href={`/articles/${citation.regulationObjectId}?clausePath=${encodeURIComponent(citation.clausePath)}&versionLabel=${encodeURIComponent(citation.versionLabel)}&effectiveDate=${encodeURIComponent(citation.effectiveDate)}${orgId ? `&orgId=${orgId}` : ""}`}
           className="text-xs text-[#1E3A5F] font-medium hover:underline"

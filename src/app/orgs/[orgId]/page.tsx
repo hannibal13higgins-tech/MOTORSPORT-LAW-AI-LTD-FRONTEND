@@ -136,7 +136,7 @@ export default function TeamHomePage() {
 
           <Link
             href={`/orgs/${orgId}/console`}
-            className="inline-flex items-center gap-2 bg-[#1E3A5F] text-white text-sm font-medium px-6 py-2.5 rounded hover:bg-[#162d4a]"
+            className="inline-flex items-center gap-2 bg-[#1E3A5F] text-white text-sm font-medium px-6 py-2.5 rounded hover:bg-[#162d4a] active:scale-[0.98] transition-all"
           >
             Open Console &rarr;
           </Link>

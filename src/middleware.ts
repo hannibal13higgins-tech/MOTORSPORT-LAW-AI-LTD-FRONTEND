@@ -2,17 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  /* Public routes — no auth check */
-  if (
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname.startsWith("/auth/")
-  ) {
-    return NextResponse.next();
-  }
-
   /* Create Supabase server client using cookies */
   let response = NextResponse.next({ request });
 
@@ -43,15 +32,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  /* Session exists on /login → redirect to dashboard */
-  if (pathname === "/login" && session) {
-    const dashUrl = new URL("/dashboard", request.url);
-    return NextResponse.redirect(dashUrl);
-  }
-
   return response;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/orgs/:path*", "/articles/:path*"],
+  matcher: [
+    /*
+     * Match protected routes only.
+     * Explicitly exclude: /login, /register, /auth/*, /_next/*, /favicon.ico, static files.
+     */
+    "/((?!login|register|auth|_next/static|_next/image|favicon\\.ico).*)",
+  ],
 };

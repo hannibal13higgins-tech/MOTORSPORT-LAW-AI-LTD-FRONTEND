@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
    * then sees its own writes because `setAll` pushes into the same
    * response object that will be returned to the browser.
    */
-  const redirectTo = new URL("/dashboard", origin);
+  const redirectTo = new URL("/dashboard?from=oauth", origin);
   const response = NextResponse.redirect(redirectTo);
 
   const supabase = createServerClient(

@@ -2,6 +2,12 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
+  /* Post-OAuth redirect — let browser land on /dashboard so client-side
+     Supabase can pick up the freshly-set session cookies. */
+  if (request.nextUrl.searchParams.get("from") === "oauth") {
+    return NextResponse.next();
+  }
+
   /* Create Supabase server client using cookies */
   let response = NextResponse.next({ request });
 

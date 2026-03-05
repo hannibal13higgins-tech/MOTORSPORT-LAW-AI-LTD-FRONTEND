@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
-import { signOut } from "@/lib/auth";
+import { signOut, getSession } from "@/lib/auth";
 
 interface Org {
   id: string;
@@ -20,6 +20,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
+      /* Client-side session guard — covers the post-OAuth redirect
+         where middleware is bypassed via ?from=oauth */
+      const session = await getSession();
+      if (!session) {
+        router.push("/login");
+        return;
+      }
+
       try {
         const data = await apiFetch("/orgs");
         setOrgs((data as Org[]) ?? []);
@@ -30,7 +38,7 @@ export default function DashboardPage() {
       }
     }
     load();
-  }, []);
+  }, [router]);
 
   return (
     <main className="min-h-screen bg-[#FAFAFA]">

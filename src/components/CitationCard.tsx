@@ -40,7 +40,7 @@ export default function CitationCard({ citation }: { citation: Citation }) {
           Effective: {new Date(citation.effectiveDate).toLocaleDateString()}
         </span>
         <Link
-          href={`/articles/${citation.regulationObjectId}`}
+          href={`/articles/${citation.regulationObjectId}?clausePath=${encodeURIComponent(citation.clausePath)}&versionLabel=${encodeURIComponent(citation.versionLabel)}&effectiveDate=${encodeURIComponent(citation.effectiveDate)}`}
           className="text-xs text-[#1E3A5F] font-medium hover:underline"
         >
           Open clause &rarr;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 
 interface RegulationObject {
@@ -18,6 +18,10 @@ interface RegulationObject {
 export default function ArticlePage() {
   const { objectId } = useParams<{ objectId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const qClausePath = searchParams.get("clausePath");
+  const qVersionLabel = searchParams.get("versionLabel");
+  const qEffectiveDate = searchParams.get("effectiveDate");
   const [article, setArticle] = useState<RegulationObject | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,20 +122,28 @@ export default function ArticlePage() {
               {article.articleNumber}
             </p>
           </div>
-          {article.clausePath && (
+          {(qClausePath || article.clausePath) && (
             <div>
               <p className="text-xs text-[#6B7280]">Clause Path</p>
               <p className="text-sm font-semibold font-mono text-[#111827]">
-                {article.clausePath}
+                {qClausePath || article.clausePath}
               </p>
             </div>
           )}
           <div>
             <p className="text-xs text-[#6B7280]">Version</p>
             <p className="text-sm font-medium text-[#111827]">
-              {article.regulationVersionId}
+              {qVersionLabel || article.regulationVersionId}
             </p>
           </div>
+          {qEffectiveDate && (
+            <div>
+              <p className="text-xs text-[#6B7280]">Effective</p>
+              <p className="text-sm font-medium text-[#111827]">
+                {new Date(qEffectiveDate).toLocaleDateString()}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Content */}

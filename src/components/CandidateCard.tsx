@@ -43,7 +43,7 @@ export default function CandidateCard({ candidate }: { candidate: DiagnosticCand
           />
         </div>
         <Link
-          href={`/articles/${candidate.regulationObjectId}`}
+          href={`/articles/${candidate.regulationObjectId}?clausePath=${encodeURIComponent(candidate.clausePath)}`}
           className="text-xs text-[#1E3A5F] font-medium hover:underline shrink-0"
         >
           Open clause &rarr;

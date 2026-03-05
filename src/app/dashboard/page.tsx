@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { signOut } from "@/lib/auth";
 
 interface Org {
   id: string;
@@ -36,7 +37,7 @@ export default function DashboardPage() {
       <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between">
         <h1 className="text-base font-semibold text-[#111827]">Motorsport Law AI</h1>
         <button
-          onClick={() => router.push("/login")}
+          onClick={async () => { await signOut(); router.push("/login"); }}
           className="text-sm text-[#6B7280] hover:text-[#111827]"
         >
           Sign out

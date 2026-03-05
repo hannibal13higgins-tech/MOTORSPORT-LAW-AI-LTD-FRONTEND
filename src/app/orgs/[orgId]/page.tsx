@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { signOut, getSession } from "@/lib/auth";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 interface Org {
@@ -19,11 +20,18 @@ export default function TeamHomePage() {
   const [org, setOrg] = useState<Org | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await apiFetch(`/orgs/${orgId}`);
+        const [data, session] = await Promise.all([
+          apiFetch(`/orgs/${orgId}`),
+          getSession(),
+        ]);
+        if (session?.user?.email) {
+          setUserEmail(session.user.email);
+        }
         if (data === null) {
           setPageError("NOT_FOUND");
           return;
@@ -105,9 +113,9 @@ export default function TeamHomePage() {
 
         <div className="px-5 py-4 border-t border-[#E5E7EB]">
           <p className="text-xs text-[#6B7280] mb-1">Signed in as</p>
-          <p className="text-xs font-medium text-[#111827] truncate">founder-demo</p>
+          <p className="text-xs font-medium text-[#111827] truncate">{userEmail || "\u2014"}</p>
           <button
-            onClick={() => router.push("/login")}
+            onClick={async () => { await signOut(); router.push("/login"); }}
             className="text-xs text-[#1E3A5F] hover:underline mt-2"
           >
             Sign out

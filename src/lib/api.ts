@@ -1,13 +1,23 @@
+import { getAccessToken } from "./auth";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export async function apiFetch(
   path: string,
   options?: RequestInit
 ): Promise<unknown> {
+  const token = await getAccessToken();
+
+  if (!token) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    return null;
+  }
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    Authorization: "Bearer dummy",
-    "x-dev-actor-id": "founder-demo",
+    Authorization: `Bearer ${token}`,
     ...(options?.headers as Record<string, string>),
   };
 

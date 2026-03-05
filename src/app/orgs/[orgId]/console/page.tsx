@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { signOut, getSession } from "@/lib/auth";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AnswerPanel from "@/components/AnswerPanel";
 import RefusalPanel from "@/components/RefusalPanel";
@@ -80,6 +81,7 @@ export default function ConsolePage() {
   const [askError, setAskError] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   const resultRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -102,10 +104,15 @@ export default function ConsolePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [orgData, setsData] = await Promise.all([
+        const [orgData, setsData, session] = await Promise.all([
           apiFetch(`/orgs/${orgId}`),
           apiFetch("/regulation-sets"),
+          getSession(),
         ]);
+
+        if (session?.user?.email) {
+          setUserEmail(session.user.email);
+        }
 
         if (orgData === null) {
           setPageError("NOT_FOUND");
@@ -285,9 +292,9 @@ export default function ConsolePage() {
 
         <div className="px-5 py-4 border-t border-[#E5E7EB]">
           <p className="text-xs text-[#6B7280] mb-1">Signed in as</p>
-          <p className="text-xs font-medium text-[#111827] truncate">founder-demo</p>
+          <p className="text-xs font-medium text-[#111827] truncate">{userEmail || "\u2014"}</p>
           <button
-            onClick={() => router.push("/login")}
+            onClick={async () => { await signOut(); router.push("/login"); }}
             className="text-xs text-[#1E3A5F] hover:underline mt-2"
           >
             Sign out

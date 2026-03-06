@@ -1,31 +1,41 @@
-import { getAccessToken } from "./auth";
+import { getSupabaseBrowserClient } from "./supabaseClient";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
+
+/**
+ * Get a fresh access token.  We call getSession() on a fresh client
+ * reference each time so the Supabase SDK re-reads cookies / localStorage
+ * rather than serving a stale in-memory cache.
+ */
+async function freshAccessToken(): Promise<string | null> {
+  const supabase = getSupabaseBrowserClient();
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+}
 
 export async function apiFetch(
   path: string,
   options?: RequestInit
 ): Promise<unknown> {
-  /* Retry up to 3 times — the Supabase browser client may not have
-     hydrated cookies immediately after an OAuth redirect or page
-     navigation.  The middleware already validated the session server-side,
-     so if we're here the user IS authenticated; we just need to wait for
-     the client-side cookie hydration to catch up. */
-  let token = await getAccessToken();
+  /* Try up to 4 times (initial + 3 retries at 500 ms intervals).
+     The middleware already validated the session server-side, so if
+     we're here the user IS authenticated; we just need to wait for
+     the client-side Supabase SDK to hydrate from cookies. */
+  let token = await freshAccessToken();
   if (!token) {
     for (let i = 0; i < 3; i++) {
       await new Promise((r) => setTimeout(r, 500));
-      token = await getAccessToken();
+      token = await freshAccessToken();
       if (token) break;
     }
   }
 
   if (!token) {
-    console.warn("[apiFetch] No token after 3 retries — session may have expired");
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
-    }
-    return null;
+    /* The middleware already guards all protected routes — if we still
+       have no token after retries the session cookie is genuinely
+       missing.  Throw instead of redirecting so the page can show an
+       inline error rather than causing a redirect loop. */
+    throw new Error("SESSION_EXPIRED");
   }
 
   const headers: Record<string, string> = {
@@ -51,10 +61,7 @@ export async function apiFetch(
     const code = body?.error ?? "UNKNOWN_ERROR";
 
     if (code === "AUTH_REQUIRED") {
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
-      return null;
+      throw new Error("SESSION_EXPIRED");
     }
 
     if (code === "NOT_FOUND") {

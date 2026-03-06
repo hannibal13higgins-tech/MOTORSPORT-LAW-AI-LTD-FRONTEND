@@ -31,7 +31,12 @@ export default function TeamHomePage() {
         }
         setOrg(data as Org);
       } catch (err) {
-        setPageError(err instanceof Error ? err.message : "Failed to load page");
+        const msg = err instanceof Error ? err.message : "Failed to load page";
+        setPageError(
+          msg === "SESSION_EXPIRED"
+            ? "Your session could not be verified. Please refresh the page or sign in again."
+            : msg
+        );
       } finally {
         setPageLoading(false);
       }

@@ -6,15 +6,22 @@ export async function apiFetch(
   path: string,
   options?: RequestInit
 ): Promise<unknown> {
-  /* Retry once — the Supabase browser client may not have hydrated
-     cookies immediately after an OAuth redirect or page navigation. */
+  /* Retry up to 3 times — the Supabase browser client may not have
+     hydrated cookies immediately after an OAuth redirect or page
+     navigation.  The middleware already validated the session server-side,
+     so if we're here the user IS authenticated; we just need to wait for
+     the client-side cookie hydration to catch up. */
   let token = await getAccessToken();
   if (!token) {
-    await new Promise((r) => setTimeout(r, 500));
-    token = await getAccessToken();
+    for (let i = 0; i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 500));
+      token = await getAccessToken();
+      if (token) break;
+    }
   }
 
   if (!token) {
+    console.warn("[apiFetch] No token after 3 retries — session may have expired");
     if (typeof window !== "undefined") {
       window.location.href = "/login";
     }

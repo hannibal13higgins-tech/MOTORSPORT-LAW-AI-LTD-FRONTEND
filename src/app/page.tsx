@@ -1,30 +1,7 @@
-'use client';
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { getSession } from "@/lib/auth";
+import Link from "next/link";
 
 export default function LandingPage() {
-  const router = useRouter();
-  const [checking, setChecking] = useState(true);
-  const [hasSession, setHasSession] = useState(false);
-
-  useEffect(() => {
-    getSession().then((s) => {
-      setHasSession(!!s);
-      setChecking(false);
-    });
-  }, []);
-
-  function handleEnterConsole() {
-    if (hasSession) {
-      router.push("/dashboard");
-    } else {
-      router.push("/login");
-    }
-  }
-
   return (
     <div className="min-h-screen bg-[#0b0f14]">
       {/* ── Hero ── */}
@@ -51,24 +28,17 @@ export default function LandingPage() {
             className="mx-auto mb-10"
             priority
           />
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Motorsport Law AI
-          </h1>
-          <p className="text-lg text-[#9ca3af] mb-10 leading-relaxed">
-            Citation-bound regulatory reasoning for motorsport teams, insurers and legal advisors.
-          </p>
 
           <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={handleEnterConsole}
-              disabled={checking}
-              className="bg-[#e10600] text-white text-sm font-semibold px-8 py-3 rounded-lg hover:bg-[#c00500] disabled:opacity-50"
+            <Link
+              href="/login"
+              className="border border-white text-white text-sm font-semibold px-8 py-3 rounded-lg hover:bg-white/10"
             >
-              Enter Console
-            </button>
+              Sign In
+            </Link>
             <a
               href="mailto:hello@motorsportlawai.com"
-              className="border border-[#1f2937] text-[#e5e7eb] text-sm font-semibold px-8 py-3 rounded-lg hover:border-[#9ca3af]"
+              className="bg-[#e10600] text-white text-sm font-semibold px-8 py-3 rounded-lg hover:bg-[#c00500]"
             >
               Request Access
             </a>

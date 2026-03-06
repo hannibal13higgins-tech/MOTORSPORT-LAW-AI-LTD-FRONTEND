@@ -18,6 +18,16 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-[#0b0f14]/55" />
         </div>
 
+        {/* Top-left logo */}
+        <div className="absolute top-6 left-8 z-10">
+          <Image
+            src="/assets/logo-transparent.png"
+            alt="Motorsport Law AI"
+            width={120}
+            height={30}
+          />
+        </div>
+
         {/* Content */}
         <div className="relative z-10 text-center max-w-2xl mx-auto">
           <Image

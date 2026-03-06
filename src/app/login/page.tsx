@@ -1,12 +1,20 @@
 'use client';
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
+  );
+}
+
+function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const blocked = searchParams.get("blocked") === "1";

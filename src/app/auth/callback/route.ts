@@ -13,9 +13,12 @@ export async function GET(request: NextRequest) {
 
   /**
    * Create the redirect response FIRST so Supabase can set cookies
-   * directly on it. The `getAll` reads from the request initially,
-   * then sees its own writes because `setAll` pushes into the same
-   * response object that will be returned to the browser.
+   * directly on it via setAll.
+   *
+   * IMPORTANT: We mirror setAll writes back into request.cookies so
+   * that a subsequent getAll (which the Supabase SDK calls internally
+   * during exchangeCodeForSession) sees cookies it just wrote. Without
+   * this, the PKCE code_verifier round-trip can fail.
    */
   const redirectTo = new URL("/dashboard?from=oauth", origin);
   const response = NextResponse.redirect(redirectTo);
@@ -28,8 +31,17 @@ export async function GET(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        setAll(
+          cookiesToSet: {
+            name: string;
+            value: string;
+            options?: Record<string, unknown>;
+          }[]
+        ) {
           for (const { name, value, options } of cookiesToSet) {
+            // Mirror into the request so subsequent getAll sees them
+            request.cookies.set(name, value);
+            // Set on the outgoing response so the browser receives them
             response.cookies.set(name, value, options);
           }
         },
@@ -41,7 +53,10 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error("[auth/callback] exchangeCodeForSession error:", error.message);
+      console.error(
+        "[auth/callback] exchangeCodeForSession error:",
+        error.message
+      );
       return NextResponse.redirect(new URL("/login", origin));
     }
 

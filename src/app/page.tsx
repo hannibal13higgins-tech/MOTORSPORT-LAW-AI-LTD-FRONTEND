@@ -46,8 +46,8 @@ export default function LandingPage() {
           <Image
             src="/assets/logo-transparent.png"
             alt="Motorsport Law AI"
-            width={240}
-            height={60}
+            width={320}
+            height={80}
             className="mx-auto mb-10"
             priority
           />

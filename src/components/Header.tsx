@@ -27,8 +27,8 @@ export default function Header() {
         <Image
           src="/assets/logo-transparent.png"
           alt="Motorsport Law AI"
-          width={160}
-          height={40}
+          width={200}
+          height={50}
           priority
         />
       </Link>

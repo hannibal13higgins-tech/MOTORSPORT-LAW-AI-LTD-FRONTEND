@@ -6,7 +6,13 @@ export async function apiFetch(
   path: string,
   options?: RequestInit
 ): Promise<unknown> {
-  const token = await getAccessToken();
+  /* Retry once — the Supabase browser client may not have hydrated
+     cookies immediately after an OAuth redirect or page navigation. */
+  let token = await getAccessToken();
+  if (!token) {
+    await new Promise((r) => setTimeout(r, 500));
+    token = await getAccessToken();
+  }
 
   if (!token) {
     if (typeof window !== "undefined") {

@@ -1,9 +1,7 @@
-'use client';
-
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
 import Header from "@/components/Header";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
@@ -13,76 +11,52 @@ interface Org {
   createdAt: string;
 }
 
-export default function TeamHomePage() {
-  const { orgId } = useParams<{ orgId: string }>();
-  const router = useRouter();
+async function getOrg(orgId: string): Promise<Org | null> {
+  const cookieStore = await cookies();
 
-  const [org, setOrg] = useState<Org | null>(null);
-  const [pageError, setPageError] = useState<string | null>(null);
-  const [pageLoading, setPageLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await apiFetch(`/orgs/${orgId}`);
-        if (data === null) {
-          setPageError("NOT_FOUND");
-          return;
-        }
-        setOrg(data as Org);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Failed to load page";
-        setPageError(
-          msg === "SESSION_EXPIRED"
-            ? "Your session could not be verified. Please refresh the page or sign in again."
-            : msg
-        );
-      } finally {
-        setPageLoading(false);
-      }
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {
+          // Server components cannot set cookies — no-op
+        },
+      },
     }
-    load();
-  }, [orgId]);
+  );
 
-  if (pageError === "NOT_FOUND") {
-    return (
-      <div className="min-h-screen bg-[#0b0f14]">
-        <Header />
-        <main className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <p className="text-lg font-semibold text-white">Not Found</p>
-            <p className="text-sm text-[#9ca3af] mt-1">
-              This organisation does not exist or you do not have access.
-            </p>
-            <Link href="/dashboard" className="text-sm text-[#00a3ff] hover:underline mt-4 inline-block">
-              Back to dashboard
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
 
-  if (pageError) {
-    return (
-      <div className="min-h-screen bg-[#0b0f14]">
-        <Header />
-        <main className="flex items-center justify-center py-20">
-          <p className="text-sm text-red-400">{pageError}</p>
-        </main>
-      </div>
-    );
-  }
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/orgs/${orgId}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      cache: "no-store",
+    }
+  );
 
-  if (pageLoading) {
-    return (
-      <div className="min-h-screen bg-[#0b0f14]">
-        <Header />
-        <main className="flex items-center justify-center py-20">
-          <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
-        </main>
-      </div>
-    );
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export default async function TeamHomePage({
+  params,
+}: {
+  params: Promise<{ orgId: string }>;
+}) {
+  const { orgId } = await params;
+  const org = await getOrg(orgId);
+
+  if (!org) {
+    notFound();
   }
 
   return (
@@ -93,17 +67,17 @@ export default function TeamHomePage() {
         <Breadcrumbs
           crumbs={[
             { label: "Dashboard", href: "/dashboard" },
-            { label: org?.name ?? "Team" },
+            { label: org.name },
           ]}
         />
       </div>
 
       <div className="max-w-[1200px] mx-auto px-6 py-8">
         <h1 className="text-lg font-semibold text-white mb-1">
-          {org?.name}
+          {org.name}
         </h1>
         <p className="text-sm text-[#9ca3af] mb-6">
-          Created {org ? new Date(org.createdAt).toLocaleDateString() : ""}
+          Created {new Date(org.createdAt).toLocaleDateString()}
         </p>
 
         <Link

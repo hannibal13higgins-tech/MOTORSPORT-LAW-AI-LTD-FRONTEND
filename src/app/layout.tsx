@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Motorsport Law AI",
-  description: "AI-powered motorsport regulatory intelligence",
+  description: "Citation-bound regulatory reasoning for motorsport.",
+  icons: { icon: "/assets/logo.png" },
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#FAFAFA] text-[#111827] antialiased">{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

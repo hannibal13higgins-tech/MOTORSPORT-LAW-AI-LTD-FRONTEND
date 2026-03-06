@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import Header from "@/components/Header";
 
 export default function NewOrgPage() {
   const router = useRouter();
@@ -37,21 +38,21 @@ export default function NewOrgPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FAFAFA]">
-      <header className="bg-white border-b border-[#E5E7EB] px-6 py-4">
-        <Link href="/dashboard" className="text-sm text-[#6B7280] hover:text-[#111827]">
-          &larr; Back to dashboard
-        </Link>
-      </header>
+    <div className="min-h-screen bg-[#0b0f14]">
+      <Header />
 
       <div className="max-w-md mx-auto px-6 py-8">
-        <h2 className="text-lg font-semibold text-[#111827] mb-6">
+        <Link href="/dashboard" className="text-sm text-[#9ca3af] hover:text-white mb-6 inline-block">
+          &larr; Back to dashboard
+        </Link>
+
+        <h2 className="text-lg font-semibold text-white mb-6">
           Create Organisation
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#111827] mb-1">
+            <label className="block text-sm font-medium text-[#e5e7eb] mb-1">
               Organisation name
             </label>
             <input
@@ -59,13 +60,13 @@ export default function NewOrgPage() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-[#E5E7EB] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
+              className="w-full bg-[#0b0f14] border border-[#1f2937] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#00a3ff] focus:border-transparent"
               placeholder="e.g. Apex Racing Team"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+            <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -73,12 +74,12 @@ export default function NewOrgPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1E3A5F] text-white text-sm font-medium py-2.5 px-4 rounded hover:bg-[#162d4a] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#e10600] text-white text-sm font-semibold py-2.5 px-4 rounded-lg hover:bg-[#c00500] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Creating…" : "Create Organisation"}
+            {loading ? "Creating\u2026" : "Create Organisation"}
           </button>
         </form>
       </div>
-    </main>
+    </div>
   );
 }

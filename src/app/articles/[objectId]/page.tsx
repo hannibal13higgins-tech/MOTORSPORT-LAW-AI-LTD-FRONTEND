@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import Header from "@/components/Header";
 
 interface RegulationObject {
   id: string;
@@ -75,7 +76,6 @@ export default function ArticlePage() {
     }
   }
 
-  /* Build breadcrumbs */
   const crumbs: { label: string; href?: string }[] = [
     { label: "Dashboard", href: "/dashboard" },
   ];
@@ -89,49 +89,60 @@ export default function ArticlePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <p className="text-sm text-[#6B7280]">Loading…</p>
-      </main>
+      <div className="min-h-screen bg-[#0b0f14]">
+        <Header />
+        <main className="flex items-center justify-center py-20">
+          <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
+        </main>
+      </div>
     );
   }
 
   if (notFound) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <div className="text-center">
-          <p className="text-lg font-semibold text-[#111827]">Not Found</p>
-          <p className="text-sm text-[#6B7280] mt-1">
-            This regulation article does not exist.
-          </p>
-          <button
-            onClick={handleBack}
-            className="text-sm text-[#1E3A5F] underline mt-4 inline-block"
-          >
-            Back
-          </button>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[#0b0f14]">
+        <Header />
+        <main className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-white">Not Found</p>
+            <p className="text-sm text-[#9ca3af] mt-1">
+              This regulation article does not exist.
+            </p>
+            <button
+              onClick={handleBack}
+              className="text-sm text-[#00a3ff] hover:underline mt-4 inline-block"
+            >
+              Back
+            </button>
+          </div>
+        </main>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <p className="text-sm text-red-600">{error}</p>
-      </main>
+      <div className="min-h-screen bg-[#0b0f14]">
+        <Header />
+        <main className="flex items-center justify-center py-20">
+          <p className="text-sm text-red-400">{error}</p>
+        </main>
+      </div>
     );
   }
 
   if (!article) return null;
 
   return (
-    <main className="min-h-screen bg-[#FAFAFA]">
-      {/* Header */}
-      <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#0b0f14]">
+      <Header />
+
+      {/* Sub-header with breadcrumbs */}
+      <div className="bg-[#111827] border-b border-[#1f2937] px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={handleBack}
-            className="text-sm text-[#6B7280] hover:text-[#111827] active:scale-[0.98] transition-transform"
+            className="text-sm text-[#9ca3af] hover:text-white"
           >
             &larr; Back
           </button>
@@ -139,39 +150,39 @@ export default function ArticlePage() {
         </div>
         <button
           onClick={handleCopyCitation}
-          className="text-sm text-[#1E3A5F] border border-[#E5E7EB] rounded px-3 py-1 hover:bg-[#FAFAFA] active:scale-[0.98] transition-all"
+          className="text-sm text-[#00a3ff] border border-[#1f2937] rounded-lg px-3 py-1 hover:bg-[#1f2937]"
         >
           {copied ? "Copied" : "Copy citation"}
         </button>
-      </header>
+      </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Metadata bar */}
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mb-8 flex flex-wrap gap-x-6 gap-y-2">
+        <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-5 mb-8 flex flex-wrap gap-x-6 gap-y-2">
           <div>
-            <p className="text-xs text-[#6B7280]">Article</p>
-            <p className="text-sm font-semibold font-mono text-[#111827]">
+            <p className="text-xs text-[#6b7280]">Article</p>
+            <p className="text-sm font-semibold font-mono text-white">
               {article.articleNumber}
             </p>
           </div>
           {(qClausePath || article.clausePath) && (
             <div>
-              <p className="text-xs text-[#6B7280]">Clause Path</p>
-              <p className="text-sm font-semibold font-mono text-[#111827]">
+              <p className="text-xs text-[#6b7280]">Clause Path</p>
+              <p className="text-sm font-semibold font-mono text-white">
                 {qClausePath || article.clausePath}
               </p>
             </div>
           )}
           <div>
-            <p className="text-xs text-[#6B7280]">Version</p>
-            <p className="text-sm font-medium text-[#111827]">
+            <p className="text-xs text-[#6b7280]">Version</p>
+            <p className="text-sm font-medium text-white">
               {qVersionLabel || article.regulationVersionId}
             </p>
           </div>
           {qEffectiveDate && (
             <div>
-              <p className="text-xs text-[#6B7280]">Effective</p>
-              <p className="text-sm font-medium text-[#111827]">
+              <p className="text-xs text-[#6b7280]">Effective</p>
+              <p className="text-sm font-medium text-white">
                 {new Date(qEffectiveDate).toLocaleDateString()}
               </p>
             </div>
@@ -179,20 +190,20 @@ export default function ArticlePage() {
         </div>
 
         {/* Content */}
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
+        <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-6">
           {article.title && (
-            <h1 className="text-lg font-semibold text-[#111827] mb-4">
+            <h1 className="text-lg font-semibold text-white mb-4">
               {article.title}
             </h1>
           )}
 
           {qClausePath && (
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#1E3A5F] mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#00a3ff] mb-3">
               Cited clause
             </p>
           )}
 
-          <div className="text-[15px] text-[#111827] leading-[1.75] whitespace-pre-wrap">
+          <div className="text-[15px] text-[#e5e7eb] leading-[1.75] whitespace-pre-wrap">
             {qClausePath ? (
               article.text.split("\n").map((line, i) => {
                 const isMatch = line.includes(qClausePath);
@@ -200,7 +211,7 @@ export default function ArticlePage() {
                   <span
                     key={i}
                     ref={highlightRef}
-                    className="bg-amber-100 border-l-4 border-amber-400 pl-3 -ml-3 block"
+                    className="bg-[#00a3ff]/10 border-l-4 border-[#00a3ff] pl-3 -ml-3 block"
                   >
                     {line}
                     {"\n"}
@@ -215,6 +226,6 @@ export default function ArticlePage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

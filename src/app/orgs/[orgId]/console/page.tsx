@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
-import { signOut, getSession } from "@/lib/auth";
+import Header from "@/components/Header";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AnswerPanel from "@/components/AnswerPanel";
 import RefusalPanel from "@/components/RefusalPanel";
@@ -81,14 +81,12 @@ export default function ConsolePage() {
   const [askError, setAskError] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState<string>("");
 
   const resultRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const selectedSet = regulationSets.find((s) => s.id === selectedRegSetId);
 
-  /* Sync setId and q to URL query params (no localStorage) */
   const syncQueryParams = useCallback(
     (setId: string, q: string) => {
       const params = new URLSearchParams();
@@ -104,15 +102,10 @@ export default function ConsolePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [orgData, setsData, session] = await Promise.all([
+        const [orgData, setsData] = await Promise.all([
           apiFetch(`/orgs/${orgId}`),
           apiFetch("/regulation-sets"),
-          getSession(),
         ]);
-
-        if (session?.user?.email) {
-          setUserEmail(session.user.email);
-        }
 
         if (orgData === null) {
           setPageError("NOT_FOUND");
@@ -194,40 +187,45 @@ export default function ConsolePage() {
     setTimeout(() => textareaRef.current?.focus(), 50);
   }
 
-  function handleBack() {
-    router.push(`/orgs/${orgId}`);
-  }
-
   /* ── Error / Loading states ── */
   if (pageError === "NOT_FOUND") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <div className="text-center">
-          <p className="text-lg font-semibold text-[#111827]">Not Found</p>
-          <p className="text-sm text-[#6B7280] mt-1">
-            This organisation does not exist or you do not have access.
-          </p>
-          <Link href="/dashboard" className="text-sm text-[#1E3A5F] underline mt-4 inline-block">
-            Back to dashboard
-          </Link>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[#0b0f14]">
+        <Header />
+        <main className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-white">Not Found</p>
+            <p className="text-sm text-[#9ca3af] mt-1">
+              This organisation does not exist or you do not have access.
+            </p>
+            <Link href="/dashboard" className="text-sm text-[#00a3ff] hover:underline mt-4 inline-block">
+              Back to dashboard
+            </Link>
+          </div>
+        </main>
+      </div>
     );
   }
 
   if (pageError) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <p className="text-sm text-red-600">{pageError}</p>
-      </main>
+      <div className="min-h-screen bg-[#0b0f14]">
+        <Header />
+        <main className="flex items-center justify-center py-20">
+          <p className="text-sm text-red-400">{pageError}</p>
+        </main>
+      </div>
     );
   }
 
   if (pageLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <p className="text-sm text-[#6B7280]">Loading…</p>
-      </main>
+      <div className="min-h-screen bg-[#0b0f14]">
+        <Header />
+        <main className="flex items-center justify-center py-20">
+          <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
+        </main>
+      </div>
     );
   }
 
@@ -238,7 +236,6 @@ export default function ConsolePage() {
   const showCandidates = !asking && result && !isGreen && result.diagnostics.candidates.length > 0;
   const candidateMaxScore = result ? Math.max(...result.diagnostics.candidates.map((c) => c.score), 1) : 1;
 
-  /* Right panel header per traffic state */
   const rightPanelHeader = (() => {
     if (!result || asking) return "Citations";
     if (isGreen) return "Cited clauses";
@@ -246,271 +243,231 @@ export default function ConsolePage() {
     return "No clauses retrieved";
   })();
 
-  /* Traffic config for banner */
   const trafficConf = result ? TRAFFIC_CONFIG[result.traffic] : null;
 
-  /* Context line values */
   const ctxName = selectedSet?.name ?? "Not selected";
   const ctxVersion = result?.citations?.[0]?.versionLabel ?? (selectedSet ? "2025 Issue 5" : "\u2014");
   const ctxEffective = result?.citations?.[0]?.effectiveDate
     ? new Date(result.citations[0].effectiveDate).toLocaleDateString()
     : "\u2014";
 
-  /* ── 3-Panel Layout ── */
+  /* ── Layout ── */
   return (
-    <div className="min-h-screen flex bg-[#FAFAFA]">
-      {/* ═══ Left Rail ═══ */}
-      <aside className="w-56 shrink-0 bg-white border-r border-[#E5E7EB] flex flex-col">
-        <div className="px-5 py-5 border-b border-[#E5E7EB]">
-          <p className="text-sm font-bold tracking-wide text-[#1E3A5F] uppercase">
-            Motorsport AI
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col bg-[#0b0f14]">
+      <Header />
 
-        <div className="px-5 py-4 flex-1">
-          {org && (
-            <p className="text-sm font-medium text-[#111827] mb-4">{org.name}</p>
-          )}
-          <nav className="space-y-1">
-            <Link
-              href="/dashboard"
-              className="block text-sm text-[#6B7280] hover:text-[#111827] px-3 py-1.5"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href={`/orgs/${orgId}`}
-              className="block text-sm text-[#6B7280] hover:text-[#111827] px-3 py-1.5"
-            >
-              Team Home
-            </Link>
-            <span className="block text-sm font-medium text-[#1E3A5F] bg-[#FAFAFA] rounded px-3 py-1.5">
-              Console
-            </span>
-          </nav>
-        </div>
-
-        <div className="px-5 py-4 border-t border-[#E5E7EB]">
-          <p className="text-xs text-[#6B7280] mb-1">Signed in as</p>
-          <p className="text-xs font-medium text-[#111827] truncate">{userEmail || "\u2014"}</p>
+      {/* Breadcrumbs bar */}
+      <div className="bg-[#111827] border-b border-[#1f2937] px-6 py-3">
+        <div className="flex items-center gap-4">
           <button
-            onClick={async () => { await signOut(); router.push("/login"); }}
-            className="text-xs text-[#1E3A5F] hover:underline mt-2"
+            onClick={() => router.push(`/orgs/${orgId}`)}
+            className="text-sm text-[#9ca3af] hover:text-white"
           >
-            Sign out
+            &larr; Back
           </button>
+          <Breadcrumbs
+            crumbs={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: org?.name ?? "Team", href: `/orgs/${orgId}` },
+              { label: "Console" },
+            ]}
+          />
         </div>
-      </aside>
+      </div>
 
-      {/* ═══ Main Panel ═══ */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
-        {/* Breadcrumbs + Back */}
-        <div className="bg-white border-b border-[#E5E7EB] px-6 py-3">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleBack}
-              className="text-sm text-[#6B7280] hover:text-[#111827] active:scale-[0.98] transition-transform"
-            >
-              &larr; Back
-            </button>
-            <Breadcrumbs
-              crumbs={[
-                { label: "Dashboard", href: "/dashboard" },
-                { label: org?.name ?? "Team", href: `/orgs/${orgId}` },
-                { label: "Console" },
-              ]}
-            />
-          </div>
-        </div>
-
-        {/* Page title context line */}
-        <div className="bg-white border-b border-[#E5E7EB] px-6 py-3">
-          <div className="flex items-center gap-4 flex-wrap">
-            <select
-              value={selectedRegSetId}
-              onChange={(e) => handleSetChange(e.target.value)}
-              className="border border-[#E5E7EB] rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] min-w-[280px]"
-            >
-              <option value="">Select a regulation set</option>
-              {regulationSets.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-
-            <div className="flex gap-2 ml-auto">
-              <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-0.5">
-                Citations enforced
-              </span>
-              <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-3 py-0.5">
-                Refusal enabled
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-x-6 gap-y-1 flex-wrap mt-2 text-xs text-[#6B7280]">
-            <span>Rulebook: <span className="font-medium text-[#111827]">{ctxName}</span></span>
-            <span>Version: <span className="font-medium text-[#111827]">{ctxVersion}</span></span>
-            <span>Effective: <span className="font-medium text-[#111827]">{ctxEffective}</span></span>
-          </div>
-        </div>
-
-        {/* ── Traffic state banner ── */}
-        {result && !asking && trafficConf && (
-          <div className={`px-6 py-3 border-b border-l-4 ${trafficConf.bg} ${trafficConf.borderLeft} ${trafficConf.border}`}>
-            <div className="flex items-center gap-4">
-              <TrafficBadge traffic={result.traffic} size="lg" />
-              <p className="text-sm text-[#111827]">
-                {result.diagnostics.reasons[0] ?? ""}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Question composer */}
-        <div className="px-6 py-6 max-w-3xl">
-          <form onSubmit={handleAsk} className="space-y-3">
-            <label className="block text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
-              Regulatory question
-            </label>
-            <textarea
-              ref={textareaRef}
-              value={question}
-              onChange={(e) => handleQuestionChange(e.target.value)}
-              rows={4}
-              placeholder="Ask a question about the selected regulation set…"
-              className="w-full border border-[#E5E7EB] rounded-lg px-4 py-3 text-[15px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] resize-none"
-            />
-            <p className="text-xs text-[#6B7280]">
-              This system answers only when the regulation text can be located and cited.
-            </p>
-
-            {askError && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
-                {askError}
-              </p>
-            )}
-
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={!selectedRegSetId || asking || !question.trim()}
-                className="bg-[#1E3A5F] text-white text-sm font-medium px-6 py-2 rounded hover:bg-[#162d4a] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+      {/* Main content area */}
+      <div className="flex flex-1 min-h-0">
+        {/* ═══ Main Panel ═══ */}
+        <main className="flex-1 min-w-0 overflow-y-auto">
+          {/* Context bar */}
+          <div className="bg-[#111827] border-b border-[#1f2937] px-6 py-3">
+            <div className="flex items-center gap-4 flex-wrap">
+              <select
+                value={selectedRegSetId}
+                onChange={(e) => handleSetChange(e.target.value)}
+                className="bg-[#0b0f14] border border-[#1f2937] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#00a3ff] min-w-[280px]"
               >
-                {asking ? "Analysing\u2026" : "Ask"}
-              </button>
-              <button
-                type="button"
-                onClick={handleClear}
-                className="text-sm text-[#6B7280] px-4 py-2 border border-[#E5E7EB] rounded hover:bg-[#FAFAFA] active:scale-[0.98] transition-all"
-              >
-                Clear
-              </button>
-            </div>
-          </form>
-        </div>
+                <option value="">Select a regulation set</option>
+                {regulationSets.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
 
-        {/* Answer / Refusal — min-height prevents layout jump */}
-        <div className="min-h-[120px]">
-          {asking && (
-            <div className="px-6 pb-6 max-w-3xl">
-              <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/3 mb-4" />
-                <div className="space-y-2.5">
-                  <div className="h-3 bg-gray-200 rounded w-full" />
-                  <div className="h-3 bg-gray-200 rounded w-5/6" />
-                  <div className="h-3 bg-gray-200 rounded w-4/6" />
-                  <div className="h-3 bg-gray-200 rounded w-3/6" />
-                </div>
+              <div className="flex gap-2 ml-auto">
+                <span className="text-xs bg-emerald-950/50 text-emerald-400 border border-emerald-800 rounded-full px-3 py-0.5">
+                  Citations enforced
+                </span>
+                <span className="text-xs bg-amber-950/50 text-amber-400 border border-amber-800 rounded-full px-3 py-0.5">
+                  Refusal enabled
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-x-6 gap-y-1 flex-wrap mt-2 text-xs text-[#6b7280]">
+              <span>Rulebook: <span className="font-medium text-[#e5e7eb]">{ctxName}</span></span>
+              <span>Version: <span className="font-medium text-[#e5e7eb]">{ctxVersion}</span></span>
+              <span>Effective: <span className="font-medium text-[#e5e7eb]">{ctxEffective}</span></span>
+            </div>
+          </div>
+
+          {/* Traffic state banner */}
+          {result && !asking && trafficConf && (
+            <div className={`px-6 py-3 border-b border-l-4 ${trafficConf.bg} ${trafficConf.borderLeft} ${trafficConf.border}`}>
+              <div className="flex items-center gap-4">
+                <TrafficBadge traffic={result.traffic} size="lg" />
+                <p className="text-sm text-[#e5e7eb]">
+                  {result.diagnostics.reasons[0] ?? ""}
+                </p>
               </div>
             </div>
           )}
 
-          {result && !asking && (
-            <div ref={resultRef} className="px-6 pb-6 max-w-3xl space-y-3">
-              {!isGreen && result.diagnostics.spellcheck && (
-                <SpellcheckNotice spellcheck={result.diagnostics.spellcheck} />
-              )}
+          {/* Question composer */}
+          <div className="px-6 py-6 max-w-3xl">
+            <form onSubmit={handleAsk} className="space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
+                Regulatory question
+              </label>
+              <textarea
+                ref={textareaRef}
+                value={question}
+                onChange={(e) => handleQuestionChange(e.target.value)}
+                rows={4}
+                placeholder="Ask a question about the selected regulation set\u2026"
+                className="w-full bg-[#111827] border border-[#1f2937] rounded-xl px-4 py-3 text-[15px] text-white focus:outline-none focus:ring-2 focus:ring-[#00a3ff] resize-none placeholder-[#6b7280]"
+              />
+              <p className="text-xs text-[#6b7280]">
+                This system answers only when the regulation text can be located and cited.
+              </p>
 
-              {isGreen && result.answer ? (
-                <AnswerPanel
-                  answer={result.answer}
-                  citations={result.citations ?? []}
-                  reasonFooter={result.diagnostics.reasons[0]}
-                  spellcheck={result.diagnostics.spellcheck}
-                />
-              ) : (
-                <RefusalPanel
-                  traffic={result.traffic}
-                  refusalReason={result.refusalReason}
-                  diagnostics={result.diagnostics}
-                  onSelectQuery={handleSelectQuery}
-                  onRefine={handleSelectQuery}
-                />
-              )}
-
-              {isRed && (
-                <p className="text-xs text-[#6B7280] pt-2">
-                  Try narrowing the question or selecting a different rulebook.
+              {askError && (
+                <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-3 py-2">
+                  {askError}
                 </p>
               )}
-            </div>
-          )}
-        </div>
 
-        {/* Audit trail */}
-        <div className="px-6 pb-8 max-w-3xl border-t border-[#E5E7EB] pt-6 mt-2">
-          <EventStrip orgId={orgId} />
-        </div>
-      </main>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={!selectedRegSetId || asking || !question.trim()}
+                  className="bg-[#e10600] text-white text-sm font-semibold px-6 py-2 rounded-lg hover:bg-[#c00500] disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {asking ? "Analysing\u2026" : "Ask"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="text-sm text-[#9ca3af] px-4 py-2 border border-[#1f2937] rounded-lg hover:bg-[#1f2937]"
+                >
+                  Clear
+                </button>
+              </div>
+            </form>
+          </div>
 
-      {/* ═══ Right Panel (Evidence) ═══ */}
-      <aside className="w-80 shrink-0 bg-white border-l border-[#E5E7EB] overflow-y-auto">
-        <div className="px-5 py-5 border-b border-[#E5E7EB]">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
-            {rightPanelHeader}
-          </p>
-        </div>
-
-        <div className="p-4 space-y-3">
-          {asking && (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="border border-[#E5E7EB] rounded-lg p-4 animate-pulse">
-                  <div className="h-3 bg-gray-200 rounded w-2/3 mb-3" />
-                  <div className="h-2 bg-gray-200 rounded w-full mb-2" />
-                  <div className="h-2 bg-gray-200 rounded w-1/2" />
+          {/* Answer / Refusal */}
+          <div className="min-h-[120px]">
+            {asking && (
+              <div className="px-6 pb-6 max-w-3xl">
+                <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-6 animate-pulse">
+                  <div className="h-4 bg-[#1f2937] rounded w-1/3 mb-4" />
+                  <div className="space-y-2.5">
+                    <div className="h-3 bg-[#1f2937] rounded w-full" />
+                    <div className="h-3 bg-[#1f2937] rounded w-5/6" />
+                    <div className="h-3 bg-[#1f2937] rounded w-4/6" />
+                    <div className="h-3 bg-[#1f2937] rounded w-3/6" />
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
 
-          {showCitations && result.citations!.map((c) => (
-            <CitationCard key={c.regulationObjectId} citation={c} orgId={orgId} />
-          ))}
+            {result && !asking && (
+              <div ref={resultRef} className="px-6 pb-6 max-w-3xl space-y-3">
+                {!isGreen && result.diagnostics.spellcheck && (
+                  <SpellcheckNotice spellcheck={result.diagnostics.spellcheck} />
+                )}
 
-          {showCandidates && result.diagnostics.candidates.map((c) => (
-            <CandidateCard key={c.regulationObjectId} candidate={c} maxScore={candidateMaxScore} orgId={orgId} />
-          ))}
+                {isGreen && result.answer ? (
+                  <AnswerPanel
+                    answer={result.answer}
+                    citations={result.citations ?? []}
+                    reasonFooter={result.diagnostics.reasons[0]}
+                    spellcheck={result.diagnostics.spellcheck}
+                  />
+                ) : (
+                  <RefusalPanel
+                    traffic={result.traffic}
+                    refusalReason={result.refusalReason}
+                    diagnostics={result.diagnostics}
+                    onSelectQuery={handleSelectQuery}
+                    onRefine={handleSelectQuery}
+                  />
+                )}
 
-          {!asking && result && isGreen && (!result.citations || result.citations.length === 0) && (
-            <p className="text-xs text-[#6B7280] py-8 text-center">
-              No citations returned.
+                {isRed && (
+                  <p className="text-xs text-[#6b7280] pt-2">
+                    Try narrowing the question or selecting a different rulebook.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Audit trail */}
+          <div className="px-6 pb-8 max-w-3xl border-t border-[#1f2937] pt-6 mt-2">
+            <EventStrip orgId={orgId} />
+          </div>
+        </main>
+
+        {/* ═══ Right Panel (Evidence) ═══ */}
+        <aside className="w-80 shrink-0 bg-[#111827] border-l border-[#1f2937] overflow-y-auto">
+          <div className="px-5 py-5 border-b border-[#1f2937]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
+              {rightPanelHeader}
             </p>
-          )}
+          </div>
 
-          {!asking && result && !isGreen && result.diagnostics.candidates.length === 0 && (
-            <p className="text-xs text-[#6B7280] py-8 text-center">
-              No clauses retrieved for this query.
-            </p>
-          )}
+          <div className="p-4 space-y-3">
+            {asking && (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="border border-[#1f2937] rounded-xl p-4 animate-pulse">
+                    <div className="h-3 bg-[#1f2937] rounded w-2/3 mb-3" />
+                    <div className="h-2 bg-[#1f2937] rounded w-full mb-2" />
+                    <div className="h-2 bg-[#1f2937] rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            )}
 
-          {!asking && !result && (
-            <p className="text-xs text-[#6B7280] py-8 text-center">
-              Citations will appear here after you ask a question.
-            </p>
-          )}
-        </div>
-      </aside>
+            {showCitations && result.citations!.map((c) => (
+              <CitationCard key={c.regulationObjectId} citation={c} orgId={orgId} />
+            ))}
+
+            {showCandidates && result.diagnostics.candidates.map((c) => (
+              <CandidateCard key={c.regulationObjectId} candidate={c} maxScore={candidateMaxScore} orgId={orgId} />
+            ))}
+
+            {!asking && result && isGreen && (!result.citations || result.citations.length === 0) && (
+              <p className="text-xs text-[#6b7280] py-8 text-center">
+                No citations returned.
+              </p>
+            )}
+
+            {!asking && result && !isGreen && result.diagnostics.candidates.length === 0 && (
+              <p className="text-xs text-[#6b7280] py-8 text-center">
+                No clauses retrieved for this query.
+              </p>
+            )}
+
+            {!asking && !result && (
+              <p className="text-xs text-[#6b7280] py-8 text-center">
+                Citations will appear here after you ask a question.
+              </p>
+            )}
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

@@ -29,23 +29,23 @@ export default function EventStrip({ orgId }: { orgId: string }) {
   }, [orgId]);
 
   if (loading) {
-    return <p className="text-xs text-[#6B7280]">Loading audit trail…</p>;
+    return <p className="text-xs text-[#6b7280]">Loading audit trail&hellip;</p>;
   }
 
   if (events.length === 0) {
-    return <p className="text-xs text-[#6B7280]">No audit events yet.</p>;
+    return <p className="text-xs text-[#6b7280]">No audit events yet.</p>;
   }
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280] mb-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280] mb-2">
         Audit Trail
       </p>
       <ul className="space-y-1">
         {events.map((event) => (
-          <li key={event.id} className="text-xs text-[#6B7280] flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1E3A5F] shrink-0" />
-            <span className="font-medium text-[#111827]">{event.type}</span>
+          <li key={event.id} className="text-xs text-[#6b7280] flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00a3ff] shrink-0" />
+            <span className="font-medium text-[#e5e7eb]">{event.type}</span>
             <span>{new Date(event.createdAt).toLocaleString()}</span>
           </li>
         ))}

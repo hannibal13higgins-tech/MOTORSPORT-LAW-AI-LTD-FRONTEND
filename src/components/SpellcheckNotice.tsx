@@ -9,11 +9,11 @@ export default function SpellcheckNotice({ spellcheck }: { spellcheck: Spellchec
   if (!spellcheck.changed || !spellcheck.correctedQuestion) return null;
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded px-4 py-2.5 text-sm text-blue-800">
+    <div className="bg-[#00a3ff]/10 border border-[#00a3ff]/30 rounded-lg px-4 py-2.5 text-sm text-[#e5e7eb]">
       Your question was corrected from &ldquo;
-      <span className="line-through text-blue-600">{spellcheck.originalQuestion}</span>
+      <span className="line-through text-[#9ca3af]">{spellcheck.originalQuestion}</span>
       &rdquo; to &ldquo;
-      <span className="font-medium">{spellcheck.correctedQuestion}</span>
+      <span className="font-medium text-white">{spellcheck.correctedQuestion}</span>
       &rdquo;
     </div>
   );

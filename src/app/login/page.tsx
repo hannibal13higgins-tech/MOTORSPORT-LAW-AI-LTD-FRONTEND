@@ -79,7 +79,7 @@ function LoginInner() {
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="text-center mb-8">
           <Image
-            src="/assets/logo.png"
+            src="/assets/logo-dark.png"
             alt="Motorsport Law AI"
             width={200}
             height={50}

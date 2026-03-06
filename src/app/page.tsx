@@ -23,22 +23,13 @@ export default function LandingPage() {
           <Image
             src="/assets/logo-transparent.png"
             alt="Motorsport Law AI"
-            width={120}
-            height={30}
+            width={220}
+            height={55}
           />
         </div>
 
         {/* Content */}
         <div className="relative z-10 text-center max-w-2xl mx-auto">
-          <Image
-            src="/assets/logo-transparent.png"
-            alt="Motorsport Law AI"
-            width={320}
-            height={80}
-            className="mx-auto mb-10"
-            priority
-          />
-
           <div className="flex items-center justify-center gap-4">
             <Link
               href="/login"

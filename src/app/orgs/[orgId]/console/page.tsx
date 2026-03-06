@@ -299,16 +299,16 @@ export default function ConsolePage() {
       </div>
 
       {/* Main content area */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         {/* ═══ Main Panel ═══ */}
-        <main className="flex-1 min-w-0 overflow-y-auto">
+        <main className="w-full lg:flex-1 min-w-0 overflow-y-auto">
           {/* Context bar */}
           <div className="bg-[#111827] border-b border-[#1f2937] px-6 py-3">
             <div className="flex items-center gap-4 flex-wrap">
               <select
                 value={selectedRegSetId}
                 onChange={(e) => handleSetChange(e.target.value)}
-                className="bg-[#0b0f14] border border-[#1f2937] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#00a3ff] min-w-[280px]"
+                className="bg-[#0b0f14] border border-[#1f2937] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#00a3ff] w-full lg:min-w-[280px] lg:w-auto"
               >
                 <option value="">Select a regulation set</option>
                 {regulationSets.map((s) => (
@@ -443,7 +443,7 @@ export default function ConsolePage() {
         </main>
 
         {/* ═══ Right Panel (Evidence) ═══ */}
-        <aside className="w-80 shrink-0 bg-[#111827] border-l border-[#1f2937] overflow-y-auto">
+        <aside className="w-full lg:w-96 shrink-0 bg-[#111827] border-t lg:border-t-0 lg:border-l border-[#1f2937] overflow-y-auto">
           <div className="px-5 py-5 border-b border-[#1f2937]">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
               {rightPanelHeader}

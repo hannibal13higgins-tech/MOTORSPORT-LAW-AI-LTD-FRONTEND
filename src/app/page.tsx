@@ -44,7 +44,7 @@ export default function LandingPage() {
         {/* Content */}
         <div className="relative z-10 text-center max-w-2xl mx-auto">
           <Image
-            src="/assets/logo.png"
+            src="/assets/logo-dark.png"
             alt="Motorsport Law AI"
             width={240}
             height={60}

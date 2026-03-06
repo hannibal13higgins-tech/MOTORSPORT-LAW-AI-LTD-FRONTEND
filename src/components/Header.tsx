@@ -25,7 +25,7 @@ export default function Header() {
     <header className="bg-[#0b0f14] border-b border-[#1f2937] px-6 py-3 flex items-center justify-between">
       <Link href="/dashboard">
         <Image
-          src="/assets/logo.png"
+          src="/assets/logo-dark.png"
           alt="Motorsport Law AI"
           width={160}
           height={40}

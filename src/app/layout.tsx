@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Motorsport Law AI",
   description: "Citation-bound regulatory reasoning for motorsport.",
-  icons: { icon: "/assets/logo.png" },
+  icons: { icon: "/assets/logo-dark.png" },
 };
 
 export default function RootLayout({

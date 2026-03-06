@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Header from "@/components/Header";
 
 export default function NewOrgPage() {
   const router = useRouter();
+  const auth = useAuthGuard();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,24 @@ export default function NewOrgPage() {
       setError(err instanceof Error ? err.message : "Failed to create organisation");
       setLoading(false);
     }
+  }
+
+  if (auth.loading) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
+      </div>
+    );
+  }
+
+  if (auth.error) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-4 py-3">
+          {auth.error}
+        </p>
+      </div>
+    );
   }
 
   return (

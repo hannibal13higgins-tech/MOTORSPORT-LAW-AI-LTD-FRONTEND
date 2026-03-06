@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
-import { getSession } from "@/lib/auth";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Header from "@/components/Header";
 
 interface Org {
@@ -14,19 +13,15 @@ interface Org {
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
+  const auth = useAuthGuard();
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function load() {
-      const session = await getSession();
-      if (!session) {
-        router.push("/login");
-        return;
-      }
+    if (!auth.authenticated) return;
 
+    async function load() {
       try {
         const data = await apiFetch("/orgs");
         setOrgs((data as Org[]) ?? []);
@@ -37,7 +32,25 @@ export default function DashboardPage() {
       }
     }
     load();
-  }, [router]);
+  }, [auth.authenticated]);
+
+  if (auth.loading) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
+      </div>
+    );
+  }
+
+  if (auth.error) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-4 py-3">
+          {auth.error}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0b0f14]">

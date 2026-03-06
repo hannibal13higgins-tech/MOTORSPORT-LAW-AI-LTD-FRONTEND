@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Header from "@/components/Header";
 
@@ -21,6 +22,7 @@ export default function ArticlePage() {
   const { objectId } = useParams<{ objectId: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const auth = useAuthGuard();
   const qClausePath = searchParams.get("clausePath");
   const qVersionLabel = searchParams.get("versionLabel");
   const qEffectiveDate = searchParams.get("effectiveDate");
@@ -33,6 +35,8 @@ export default function ArticlePage() {
   const highlightRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    if (!auth.authenticated) return;
+
     async function load() {
       try {
         const data = await apiFetch(
@@ -51,7 +55,7 @@ export default function ArticlePage() {
       }
     }
     load();
-  }, [objectId]);
+  }, [objectId, auth.authenticated]);
 
   useEffect(() => {
     if (article && qClausePath && highlightRef.current) {
@@ -86,6 +90,24 @@ export default function ArticlePage() {
   crumbs.push({
     label: article ? `Article ${article.articleNumber}` : "Article",
   });
+
+  if (auth.loading) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
+      </div>
+    );
+  }
+
+  if (auth.error) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-4 py-3">
+          {auth.error}
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

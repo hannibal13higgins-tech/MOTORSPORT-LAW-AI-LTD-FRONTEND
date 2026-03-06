@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Header from "@/components/Header";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AnswerPanel from "@/components/AnswerPanel";
@@ -67,6 +68,7 @@ export default function ConsolePage() {
   const { orgId } = useParams<{ orgId: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const auth = useAuthGuard();
 
   const [org, setOrg] = useState<Org | null>(null);
   const [regulationSets, setRegulationSets] = useState<RegulationSet[]>([]);
@@ -100,6 +102,8 @@ export default function ConsolePage() {
   );
 
   useEffect(() => {
+    if (!auth.authenticated) return;
+
     async function load() {
       try {
         const [orgData, setsData] = await Promise.all([
@@ -128,7 +132,7 @@ export default function ConsolePage() {
     }
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgId]);
+  }, [orgId, auth.authenticated]);
 
   function handleSetChange(setId: string) {
     setSelectedRegSetId(setId);
@@ -185,6 +189,25 @@ export default function ConsolePage() {
     setQuestion(query);
     syncQueryParams(selectedRegSetId, query);
     setTimeout(() => textareaRef.current?.focus(), 50);
+  }
+
+  /* ── Auth guard states ── */
+  if (auth.loading) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
+      </div>
+    );
+  }
+
+  if (auth.error) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-4 py-3">
+          {auth.error}
+        </p>
+      </div>
+    );
   }
 
   /* ── Error / Loading states ── */

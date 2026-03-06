@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
+import { apiFetch } from "@/lib/api";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Header from "@/components/Header";
 import Breadcrumbs from "@/components/Breadcrumbs";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Org {
   id: string;
@@ -15,58 +14,59 @@ interface Org {
   createdAt: string;
 }
 
-async function getToken(): Promise<string | null> {
-  for (let i = 0; i < 5; i++) {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.access_token) return data.session.access_token;
-    await new Promise((r) => setTimeout(r, 800));
-  }
-  return null;
-}
-
 export default function TeamHomePage() {
   const { orgId } = useParams<{ orgId: string }>();
+  const auth = useAuthGuard();
 
   const [org, setOrg] = useState<Org | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth.authenticated) return;
+
     async function load() {
       try {
-        const token = await getToken();
-        if (!token) {
-          setPageError("Session could not be verified — please sign out and sign in again.");
+        const data = await apiFetch(`/orgs/${orgId}`);
+        if (data === null) {
+          setPageError("NOT_FOUND");
           return;
         }
-
-        const res = await fetch(`${BASE_URL}/orgs/${orgId}`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          if (res.status === 404) {
-            setPageError("NOT_FOUND");
-          } else {
-            setPageError("Failed to load organisation");
-          }
-          return;
-        }
-
-        setOrg(await res.json());
+        setOrg(data as Org);
       } catch (err) {
-        setPageError(err instanceof Error ? err.message : "Failed to load page");
+        const msg = err instanceof Error ? err.message : "Failed to load page";
+        setPageError(
+          msg === "SESSION_EXPIRED"
+            ? "Session could not be verified — please sign out and sign in again."
+            : msg
+        );
       } finally {
         setPageLoading(false);
       }
     }
     load();
-  }, [orgId]);
+  }, [orgId, auth.authenticated]);
+
+  if (auth.loading || (auth.authenticated && pageLoading)) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14]">
+        <Header />
+        <main className="flex items-center justify-center py-20">
+          <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (auth.error) {
+    return (
+      <div className="min-h-screen bg-[#0b0f14] flex items-center justify-center">
+        <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-4 py-3">
+          {auth.error}
+        </p>
+      </div>
+    );
+  }
 
   if (pageError === "NOT_FOUND") {
     return (
@@ -95,17 +95,6 @@ export default function TeamHomePage() {
           <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-4 py-3">
             {pageError}
           </p>
-        </main>
-      </div>
-    );
-  }
-
-  if (pageLoading) {
-    return (
-      <div className="min-h-screen bg-[#0b0f14]">
-        <Header />
-        <main className="flex items-center justify-center py-20">
-          <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>
         </main>
       </div>
     );

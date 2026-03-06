@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const blocked = searchParams.get("blocked") === "1";
   const supabase = getSupabaseBrowserClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,23 +55,52 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-      <div className="w-full max-w-md">
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-8">
-          <h1 className="text-xl font-semibold text-[#111827] mb-1">
-            Motorsport Law AI
+    <main className="min-h-screen flex items-center justify-center relative">
+      {/* Background */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/assets/hero-bg-alt.png"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-[#0b0f14]/70" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md px-6">
+        <div className="text-center mb-8">
+          <Image
+            src="/assets/logo.png"
+            alt="Motorsport Law AI"
+            width={200}
+            height={50}
+            className="mx-auto"
+            priority
+          />
+        </div>
+
+        <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-8">
+          <h1 className="text-xl font-semibold text-white mb-1">
+            Sign In
           </h1>
-          <p className="text-sm text-[#6B7280] mb-6">Sign in to access the regulatory console</p>
+          <p className="text-sm text-[#9ca3af] mb-6">Access the regulatory console</p>
+
+          {blocked && (
+            <p className="text-sm text-amber-400 bg-amber-950/50 border border-amber-800 rounded-lg px-3 py-2 mb-4">
+              Access is currently by invitation only.
+            </p>
+          )}
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 mb-4">
+            <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-3 py-2 mb-4">
               {error}
             </p>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#111827] mb-1">
+              <label className="block text-sm font-medium text-[#e5e7eb] mb-1">
                 Email
               </label>
               <input
@@ -76,12 +108,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full border border-[#E5E7EB] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
+                className="w-full bg-[#0b0f14] border border-[#1f2937] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#00a3ff] focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#111827] mb-1">
+              <label className="block text-sm font-medium text-[#e5e7eb] mb-1">
                 Password
               </label>
               <input
@@ -89,14 +121,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full border border-[#E5E7EB] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
+                className="w-full bg-[#0b0f14] border border-[#1f2937] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#00a3ff] focus:border-transparent"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#1E3A5F] text-white text-sm font-medium py-2.5 px-4 rounded hover:bg-[#162d4a] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#e10600] text-white text-sm font-semibold py-2.5 px-4 rounded-lg hover:bg-[#c00500] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Signing in\u2026" : "Sign in"}
             </button>
@@ -104,16 +136,16 @@ export default function LoginPage() {
 
           {/* Separator */}
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-[#E5E7EB]" />
-            <span className="text-xs text-[#6B7280]">or</span>
-            <div className="flex-1 h-px bg-[#E5E7EB]" />
+            <div className="flex-1 h-px bg-[#1f2937]" />
+            <span className="text-xs text-[#6b7280]">or</span>
+            <div className="flex-1 h-px bg-[#1f2937]" />
           </div>
 
           {/* Google OAuth */}
           <button
             onClick={handleGoogleLogin}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-2 border border-[#E5E7EB] text-sm font-medium text-[#111827] py-2.5 px-4 rounded hover:bg-[#FAFAFA] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 border border-[#1f2937] text-sm font-medium text-white py-2.5 px-4 rounded-lg hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -124,9 +156,9 @@ export default function LoginPage() {
             {googleLoading ? "Redirecting\u2026" : "Continue with Google"}
           </button>
 
-          <p className="text-sm text-[#6B7280] mt-4 text-center">
+          <p className="text-sm text-[#6b7280] mt-4 text-center">
             No account?{" "}
-            <Link href="/register" className="text-[#1E3A5F] font-medium underline">
+            <Link href="/register" className="text-[#00a3ff] font-medium hover:underline">
               Register
             </Link>
           </p>

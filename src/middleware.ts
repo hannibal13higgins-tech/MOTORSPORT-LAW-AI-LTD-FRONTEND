@@ -2,11 +2,16 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
-  /* Post-OAuth redirect — let browser land on /dashboard so client-side
+  /* Post-OAuth redirect — let browser land so client-side
      Supabase can pick up the freshly-set session cookies. */
   if (request.nextUrl.searchParams.get("from") === "oauth") {
     return NextResponse.next();
   }
+
+  const allowedEmails = (process.env.ALLOWED_TESTER_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
 
   /* Create Supabase server client using cookies */
   let response = NextResponse.next({ request });
@@ -30,17 +35,19 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  /*
-   * getUser() validates the JWT server-side (unlike getSession which only
-   * reads local cookies and may miss freshly-set tokens after OAuth redirect).
-   * This also refreshes the token if needed, and setAll above ensures the
-   * refreshed cookies are forwarded to the browser.
-   */
   const { data: { user } } = await supabase.auth.getUser();
 
+  /* No session → redirect to login */
   if (!user) {
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  /* Tester whitelist — if ALLOWED_TESTER_EMAILS is set, enforce it */
+  if (allowedEmails.length > 0) {
+    const email = (user.email || "").toLowerCase();
+    if (!allowedEmails.includes(email)) {
+      return NextResponse.redirect(new URL("/login?blocked=1", request.url));
+    }
   }
 
   return response;
@@ -48,10 +55,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match protected routes only.
-     * Explicitly exclude: /login, /register, /auth/*, /_next/*, /favicon.ico, static files.
-     */
-    "/((?!login|register|auth|_next/static|_next/image|favicon\\.ico).*)",
+    "/dashboard/:path*",
+    "/orgs/:path*",
+    "/console/:path*",
+    "/articles/:path*",
   ],
 };

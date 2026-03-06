@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
-import { signOut, getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+import Header from "@/components/Header";
 
 interface Org {
   id: string;
@@ -20,8 +21,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
-      /* Client-side session guard — covers the post-OAuth redirect
-         where middleware is bypassed via ?from=oauth */
       const session = await getSession();
       if (!session) {
         router.push("/login");
@@ -41,40 +40,32 @@ export default function DashboardPage() {
   }, [router]);
 
   return (
-    <main className="min-h-screen bg-[#FAFAFA]">
-      <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between">
-        <h1 className="text-base font-semibold text-[#111827]">Motorsport Law AI</h1>
-        <button
-          onClick={async () => { await signOut(); router.push("/login"); }}
-          className="text-sm text-[#6B7280] hover:text-[#111827]"
-        >
-          Sign out
-        </button>
-      </header>
+    <div className="min-h-screen bg-[#0b0f14]">
+      <Header />
 
-      <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="max-w-[1200px] mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-[#111827]">Organisations</h2>
+          <h2 className="text-lg font-semibold text-white">Organisations</h2>
           <Link
             href="/orgs/new"
-            className="text-sm bg-[#1E3A5F] text-white px-4 py-2 rounded hover:bg-[#162d4a]"
+            className="text-sm bg-[#e10600] text-white px-4 py-2 rounded-lg hover:bg-[#c00500] font-medium"
           >
             Create Organisation
           </Link>
         </div>
 
-        {loading && <p className="text-sm text-[#6B7280]">Loading…</p>}
+        {loading && <p className="text-sm text-[#9ca3af]">Loading&hellip;</p>}
 
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+          <p className="text-sm text-red-400 bg-red-950/50 border border-red-800 rounded-lg px-3 py-2">
             {error}
           </p>
         )}
 
         {!loading && !error && orgs.length === 0 && (
-          <p className="text-sm text-[#6B7280]">
+          <p className="text-sm text-[#9ca3af]">
             No organisations yet.{" "}
-            <Link href="/orgs/new" className="underline text-[#1E3A5F]">
+            <Link href="/orgs/new" className="underline text-[#00a3ff]">
               Create one
             </Link>{" "}
             to get started.
@@ -87,21 +78,21 @@ export default function DashboardPage() {
               <li key={org.id}>
                 <Link
                   href={`/orgs/${org.id}`}
-                  className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded px-4 py-3 hover:border-[#1E3A5F] hover:shadow-sm transition-all duration-150"
+                  className="flex items-center justify-between bg-[#111827] border border-[#1f2937] rounded-xl px-5 py-4 hover:border-[#00a3ff] hover:shadow-sm transition-all duration-150"
                 >
                   <div>
-                    <span className="text-sm font-medium text-[#111827]">{org.name}</span>
-                    <span className="block text-xs text-[#6B7280] mt-0.5">
+                    <span className="text-sm font-medium text-white">{org.name}</span>
+                    <span className="block text-xs text-[#9ca3af] mt-0.5">
                       Created {new Date(org.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <span className="text-sm text-[#1E3A5F] font-medium">Open</span>
+                  <span className="text-sm text-[#00a3ff] font-medium">Open</span>
                 </Link>
               </li>
             ))}
           </ul>
         )}
       </div>
-    </main>
+    </div>
   );
 }

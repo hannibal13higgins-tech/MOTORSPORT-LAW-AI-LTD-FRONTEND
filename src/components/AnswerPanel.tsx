@@ -23,21 +23,21 @@ export default function AnswerPanel({ answer, citations, reasonFooter, spellchec
     <div className="space-y-3">
       {spellcheck && <SpellcheckNotice spellcheck={spellcheck} />}
 
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
+      <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-6">
         {/* Rulebook context */}
         {lead && (
-          <div className="bg-[#FAFAFA] border border-[#E5E7EB] rounded p-3 mb-4 flex flex-wrap gap-x-6 gap-y-1 text-xs">
+          <div className="bg-[#0b0f14] border border-[#1f2937] rounded-lg p-3 mb-4 flex flex-wrap gap-x-6 gap-y-1 text-xs">
             <div>
-              <span className="text-[#6B7280]">Rulebook: </span>
-              <span className="font-medium text-[#111827]">{lead.regulationSetName}</span>
+              <span className="text-[#6b7280]">Rulebook: </span>
+              <span className="font-medium text-[#e5e7eb]">{lead.regulationSetName}</span>
             </div>
             <div>
-              <span className="text-[#6B7280]">Version: </span>
-              <span className="font-medium text-[#111827]">{lead.versionLabel}</span>
+              <span className="text-[#6b7280]">Version: </span>
+              <span className="font-medium text-[#e5e7eb]">{lead.versionLabel}</span>
             </div>
             <div>
-              <span className="text-[#6B7280]">Effective: </span>
-              <span className="font-medium text-[#111827]">
+              <span className="text-[#6b7280]">Effective: </span>
+              <span className="font-medium text-[#e5e7eb]">
                 {new Date(lead.effectiveDate).toLocaleDateString()}
               </span>
             </div>
@@ -46,19 +46,19 @@ export default function AnswerPanel({ answer, citations, reasonFooter, spellchec
 
         {/* Grounding line */}
         {lead && (
-          <p className="text-xs text-[#6B7280] mb-5">
+          <p className="text-xs text-[#6b7280] mb-5">
             Answer grounded in {count} cited clause{count !== 1 ? "s" : ""} from{" "}
             {lead.regulationSetName} &mdash; {lead.versionLabel}
           </p>
         )}
 
-        {/* Answer text — increased line height and paragraph spacing */}
-        <div className="text-[15px] text-[#111827] leading-[1.75] whitespace-pre-wrap space-y-4">
+        {/* Answer text */}
+        <div className="text-[15px] text-[#e5e7eb] leading-[1.75] whitespace-pre-wrap space-y-4">
           {answer}
         </div>
 
         {reasonFooter && (
-          <p className="text-xs text-[#6B7280] mt-5 pt-3 border-t border-[#E5E7EB]">
+          <p className="text-xs text-[#6b7280] mt-5 pt-3 border-t border-[#1f2937]">
             {reasonFooter}
           </p>
         )}
